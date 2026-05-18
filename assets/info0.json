@@ -1,0 +1,10 @@
+{
+  "bark_width": 80,
+  "branch_width": 150,
+  "branch_height": 40,
+  "gem_width": 40,
+  "gem_height": 80,
+  "branch_space": 300,
+  "wood_cutter_width": 80,
+  "gravity": 5
+}
