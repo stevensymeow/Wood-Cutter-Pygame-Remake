@@ -37,9 +37,13 @@ class Settings:
     TEXT_FONT: str = "Minecraft.ttf"
     INSTRUCTION_TEXT_FONT: str = "CambriaBold.ttf"
     # Auto save
+    FILE_LOADED: bool = False
     AUTO_SAVE: bool = True
     # Json Paths
     CONFIG_JSON: str = "config.json"
+    # Level
+    level_index: int = 0
+    LEVEL_SWITCHED: bool = False
     
     def set_volume(self, volume: float):
         self.AUDIO_VOLUME = volume
@@ -104,7 +108,8 @@ class Settings:
             "SCREEN_HEIGHT": self.SAVE_HEIGHT,
             "TITLE": self.TITLE,
             "DEBUG": "True" if self.DEBUG else "False",
-            "AUTO_SAVE": "True" if self.AUTO_SAVE else "False"
+            "AUTO_SAVE": "True" if self.AUTO_SAVE else "False",
+            "level_index": self.level_index
         }
     
     def save_config(self, do_log: bool = True):
@@ -139,6 +144,7 @@ class Settings:
         self.set_title(title)
         self.DEBUG = (debug == "True")
         self.AUTO_SAVE = (auto_save != "False")
+        self.level_index = data.get("level_index") or self.level_index
     
 GameSettings = Settings()
 GameSettings.load_config_except_path()

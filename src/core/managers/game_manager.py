@@ -3,10 +3,14 @@ from src.utils import Logger, GameSettings
 import pygame as pg
 from enum import Enum
 import random
-import math
+import json
+import os
 from typing import Callable
 from typing import TYPE_CHECKING
 from src.data.info import GameInfo
+from src.levels import Level
+from src.utils.definition import RGBColor, Record
+from src.utils import SAVES_DIR
 
 if TYPE_CHECKING:
     from src.core.managers import InputManager, SoundManager, SceneManager
@@ -33,6 +37,16 @@ class GameManager:
     fallen_branches: int
     score: int
     
+    # Levels
+    levels: list[Level]
+    level_count: int
+    level_index: int
+    
+    # Branch move
+    branch_count: int
+    move_count: int     # count until next move
+    branch_move: bool   # whether branches are moving
+    
     # --- Components ---
     # Tree Bark
     tree_bark: Rectangle
@@ -42,7 +56,7 @@ class GameManager:
     
     # -- Branches --
     branches: list[Branch]
-    make_new_branch: Callable[[int], Branch]
+    make_new_branch: Callable[[int, bool], Branch]
     
     # -- Gems --
     gems: list[Branch]
@@ -62,12 +76,24 @@ class GameManager:
         self.fallen_branches = 0
         self.score = 0
         
+        # Levels
+        self.levels = GameInfo.levels[:]
+        self.level_count = len(self.levels)
+        self.level_index = GameSettings.level_index
+        
+        # Branch move
+        self.branch_count = 0
+        self.move_count = random.randint(1, 4)
+        self.branch_move = False
+        
         # --- Components ---
         # Branches
         self.branches = []
-        
         # Gems
         self.gems = []
+        
+        # Level Records
+        self.load_record()
     
     @classmethod
     def make(cls, input_manager: InputManager, sound_manager: SoundManager) -> "GameManager":
@@ -88,8 +114,8 @@ class GameManager:
         # -- Branches --
         gm.branches = []
         
-        def new_branch(pos: int = -1) -> Branch:
-            return Branch(gm, pos=pos)
+        def new_branch(pos: int = -1, do_move: bool = False) -> Branch:
+            return Branch(gm, pos=pos, do_move=do_move)
         gm.make_new_branch = new_branch
         
         # -- Gems --
@@ -101,12 +127,35 @@ class GameManager:
         
         return gm
 
+    # -- Levels --
+    @property
+    def curr_lv(self) -> Level:
+        self.level_index = GameSettings.level_index
+        return self.levels[self.level_index]
+    
+    @property
+    def has_next_level(self) -> bool:
+        self.level_index = GameSettings.level_index
+        return self.level_index < self.level_count - 1
+    
+    @property
+    def has_prev_level(self) -> bool:
+        self.level_index = GameSettings.level_index
+        return self.level_index > 0
+    
+    # -- Levels --
+    
     # -- Branches --
     def add_new_branch(self, count: int = 1):
         for _ in range(count):
             pos = random.randint(0, 1)*2 - 1
-            #Logger.info(f"pos: {pos}")
-            self.branches.append(self.make_new_branch(pos))
+            self.branch_count += 1
+            branch_move = False
+            if self.branch_count > self.move_count:
+                branch_move = True
+                self.branch_count = 0
+                self.move_count = random.randint(1, 4)
+            self.branches.append(self.make_new_branch(pos, branch_move))
     
     def del_first_branch(self):
         self.branches.pop(0)
@@ -119,7 +168,6 @@ class GameManager:
     def add_new_gem(self, count: int = 1):
         for _ in range(count):
             pos = random.randint(0, 1)*2 - 1
-            #Logger.info(f"pos: {pos}")
             self.gems.append(self.make_new_gem(pos))
     
     def del_first_gem(self):
@@ -132,10 +180,20 @@ class GameManager:
     def enter(self) -> None:
         self.state = Game.Entered
         self.game_init()
+        # Record
+        self.highest_score = self.curr_lv.highest_score
+        # Player color
+        self.wood_cutter.set_color(self.curr_lv.player_color)
     
     def exit(self) -> None:
         self.state = Game.Entered
         self.game_init()
+    
+    def end_game(self):
+        self.state = Game.GG
+        self.sound_manager.play_sound(self.curr_lv.gg_bgm)
+        record: Record = {"score": self.score, "branches": self.branch_count, "gems": self.collected_gems}
+        self.curr_lv.set_record(record)
     
     def game_init(self):
         # Score
@@ -160,6 +218,9 @@ class GameManager:
         self.game_init()
     
     def update(self, dt: float) -> None:
+        # Level index
+        self.level_index = GameSettings.level_index
+        
         # State
         match (self.state):
             case Game.Entered:
@@ -170,7 +231,7 @@ class GameManager:
                 if start_condition:
                     self.game_init()
                     self.state = Game.Playing
-                    self.sound_manager.play_bgm("xylo1.wav")
+                    self.sound_manager.play_bgm(self.curr_lv.bgm_path)
                     #self.sound_manager.play_bgm("dance celebrate.wav")
                     self.add_new_branch()
                     #self.add_new_gem()
@@ -213,7 +274,7 @@ class GameManager:
                 if self.branches[-1].y_dropped >= space:
                     self.add_new_branch()
                     #Logger.info(f"Branches: {' '.join([str(branch.y_dropped) for branch in self.branches])}")
-                if not self.branches[0].show:
+                if not self.branches[0].falling:
                     self.del_first_branch()
             
         for branch in self.branches:
@@ -227,7 +288,7 @@ class GameManager:
                 if self.gems[-1].y_dropped >= space:
                     self.add_new_gem()
                     #Logger.info(f"Gems: {' '.join([str(gem.y_dropped) for gem in self.gems])}")
-                if not self.gems[0].show:
+                if not self.gems[0].falling:
                     self.del_first_gem()
             else:
                 if self.branches and self.branches[-1].y_dropped >= space/2:
@@ -252,3 +313,35 @@ class GameManager:
         
         # Wood Cutter
         self.wood_cutter.draw(screen)
+        
+    def to_dict(self) -> dict[str, object]:
+        data: dict[str, object] = {}
+        data["level_index"] = self.level_index
+        data["level_label"] = self.curr_lv.level_label
+        data["level_name"] = self.curr_lv.level_name
+        data["levels"] = [level.records_to_dict() for level in self.levels]
+        return data
+    
+    def save(self):
+        try:
+            path = str(SAVES_DIR / "records0.json")
+            with open(path, "w") as f:
+                json.dump(self.to_dict(), f, indent=2)
+            Logger.info(f"Record saved to {path}")
+        except Exception as e:
+            Logger.warning(f"Failed to save record: {e}")
+    
+    def load_record(self):
+        path = str(SAVES_DIR / "records0.json")
+        if not os.path.exists(path):
+            Logger.info(f"No record file found: {path}, making it")
+            self.save()
+            return None
+
+        with open(path, "r") as f:
+            data: dict[str, object] = json.load(f)
+        
+        level_data: list[dict[str, object]] = data["levels"]
+        for i in range(self.level_count):
+            self.levels[i].load_record(level_data[i])
+        

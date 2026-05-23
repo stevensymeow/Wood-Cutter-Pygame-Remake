@@ -78,6 +78,7 @@ class SceneManager:
     def game_manager(self) -> GameManager | None:
         if self.game_scene is not None:
             return self.game_scene.game_manager
+        print("Game scene not found, noooooooooooooooooooooooooooooooooooooooooooooooooooooo")
         return None
      
     def register_scene(self, name: str, scene: Scene) -> None:

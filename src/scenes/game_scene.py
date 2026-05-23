@@ -1,6 +1,7 @@
 import pygame as pg
 
-from src.utils import GameSettings
+from src.data.info import GameInfo
+from src.utils import GameSettings, Logger
 from src.scenes.scene import Scene
 from src.interface.components import Text, Overlay, Oval, Rectangle, OvalButton, RunningText, WoodCutter, Branch
 from src.core.services import scene_manager, sound_manager, input_manager
@@ -11,7 +12,7 @@ class GameScene(Scene):
     # Background
     background: Overlay
     
-    # Game
+    # Game Manager
     game_manager: GameManager
     
     # Buttons
@@ -26,11 +27,14 @@ class GameScene(Scene):
     
     def __init__(self):
         super().__init__()
-        # Background
-        self.background = Overlay((0, 255, 255, 255))
         
-        # Game
+        # Game Manager
         self.game_manager = GameManager.make(input_manager, sound_manager)
+        
+        # Background
+        self.background = Overlay()
+        background_color = self.game_manager.curr_lv.background_color
+        self.background.set_color(background_color)
         
         # Tree Bark
         pcx, pcy = GameSettings.SCREEN_WIDTH / 2, GameSettings.SCREEN_HEIGHT / 2
@@ -44,10 +48,11 @@ class GameScene(Scene):
         
         # Buttons
         wx, hy = GameSettings.SCREEN_WIDTH, GameSettings.SCREEN_HEIGHT
-        self.back_button = OvalButton((255, 125, 0), wx-90-20, hy-60-20, 60, 60,
+        button_color = self.game_manager.curr_lv.button_color
+        self.back_button = OvalButton(button_color, wx-90-20, hy-60-20, 60, 60,
                                       on_click=lambda: scene_manager.change_scene("menu"),
                                       text_str="BACK", text_size=15, text_color=(255, 255, 255))
-        self.retry_button = OvalButton((255, 125, 0), 90+20, hy-60-20, 60, 60,
+        self.retry_button = OvalButton(button_color, 90+20, hy-60-20, 60, 60,
                                       on_click=lambda: self.game_manager.retry(),
                                       text_str="RETRY", text_size=15, text_color=(255, 255, 255))
 
@@ -55,14 +60,15 @@ class GameScene(Scene):
         wx, hy = GameSettings.SCREEN_WIDTH, GameSettings.SCREEN_HEIGHT
         font = GameSettings.TEXT_FONT
         text_size = 24
-        self.high_score_text = Text(f"Highest Score: {self.game_manager.highest_score}", text_size, font, (0, 0, 0),
+        text_color = self.game_manager.curr_lv.score_color
+        self.high_score_text = Text(f"Highest Score: {self.game_manager.highest_score}", text_size, font, text_color,
                                     20, 20+10)
         spaces = 200
-        self.gem_text = Text(f"Gems: {self.game_manager.collected_gems}", text_size, font, (0, 0, 0),
+        self.gem_text = Text(f"Gems: {self.game_manager.collected_gems}", text_size, font, text_color,
                              wx-spaces, 20+10)
-        self.branch_text = Text(f"Branches: {self.game_manager.fallen_branches}", text_size, font, (0, 0, 0),
+        self.branch_text = Text(f"Branches: {self.game_manager.fallen_branches}", text_size, font, text_color,
                              wx-spaces, 20+10+text_size+10)
-        self.score_text = Text(f"Score: {self.game_manager.score}", text_size, font, (0, 0, 0),
+        self.score_text = Text(f"Score: {self.game_manager.score}", text_size, font, text_color,
                              wx-spaces, 20+10+text_size+10+text_size+10)
     
     @override
@@ -72,6 +78,21 @@ class GameScene(Scene):
         
         # Running Text
         self.running_text.pos_init()
+        
+        # -- Level --
+        curr_lv = self.game_manager.curr_lv
+        # Background
+        self.background.set_color(curr_lv.background_color)
+        # Buttons
+        button_color = curr_lv.button_color
+        self.back_button.set_color(button_color)
+        self.retry_button.set_color(button_color)
+        # Score Text
+        score_color = curr_lv.score_color
+        self.high_score_text.set_color(score_color)
+        self.gem_text.set_color(score_color)
+        self.branch_text.set_color(score_color)
+        self.score_text.set_color(score_color)
     
     @override
     def exit(self) -> None:
@@ -89,6 +110,14 @@ class GameScene(Scene):
     def update(self, dt: float):
         # Game manager
         self.game_manager.update(dt)
+        
+        # Back
+        if self.game_manager.state != Game.Playing:
+            if input_manager.key_pressed(pg.K_b):
+                scene_manager.change_scene("menu")
+        
+        # Background
+        self.background.update(dt)
         
         # Running Text
         self.running_text.update(dt)

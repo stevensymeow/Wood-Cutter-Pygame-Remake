@@ -24,11 +24,15 @@ class FallingObject(WHShape):
     # Fall
     y_dropped: int
     
-    # Show
-    show: bool
+    # Is falling
+    falling: bool
     
     # Game manager
     game_manager: GameManager
+    
+    # Move
+    moved: bool
+    started_moving: bool
     
     def __init__(self, game_manager: GameManager, 
                  width: int, height: int,
@@ -64,10 +68,14 @@ class FallingObject(WHShape):
         self.hitbox_color = hitbox_color
         
         # Show
-        self.show = True
+        self.falling = True
         
         # Fall
         self.y_dropped = 0
+        
+        # Move
+        self.moved = False
+        self.started_moving = False
         
         super().__init__(color=color, 
                          x=self.x, y=0, 
@@ -80,7 +88,7 @@ class FallingObject(WHShape):
         self.y_dropped = 0
     
     @override
-    def update(self, dt: float) -> None:
+    def update(self, dt: float, move: bool = False) -> None:
         match (self.game_manager.state):
             case Game.Entered:
                 pass
@@ -97,10 +105,29 @@ class FallingObject(WHShape):
                     if self.hitbox.colliderect(self.game_manager.wood_cutter.hitbox):
                         self.when_hit_player()
                 else:
-                    if self.show:
+                    if self.falling:
                         if self.y >= hy:
                             self.when_hit_ground()
-        
+                # Move to left or right
+                if move and (not self.moved) and self.y_dropped >= GameSettings.SCREEN_HEIGHT/2:
+                    if not self.started_moving:
+                        self.started_moving = True
+                        sound_manager.play_sound(self.game_manager.curr_lv.move_sound)
+                    if self.pos == -1:
+                        if self.x < self.x_right:
+                            self.move_by(GameInfo.branch_move_speed, 0)
+                        else:
+                            self.x = self.x_right
+                            self.pos = 1
+                            self.moved = True
+                    elif self.pos == 1:
+                        if self.x > self.x_left:
+                            self.move_by(-GameInfo.branch_move_speed, 0)
+                        else:
+                            self.x = self.x_left
+                            self.pos = -1
+                            self.moved = True
+
         super().update(dt)
     
     def when_hit_ground(self):
@@ -112,8 +139,8 @@ class FallingObject(WHShape):
         pass
      
     @override
-    def draw(self, screen: pg.Surface) -> None:
-        if self.show:
+    def draw(self, screen: pg.Surface, show: bool = True) -> None:
+        if self.falling and show:
             super().draw(screen)
         
         if GameSettings.DRAW_HITBOXES:

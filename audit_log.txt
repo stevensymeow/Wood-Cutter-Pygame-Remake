@@ -1,0 +1,36 @@
+I don't know what's wrong with me beforeward that I didn't left anything here
+
+[2025/05/22] first edit of this audit log
+             definition.py: Record(TypedDict)
+             Level(): to_dict(), from_dict()
+             Info(): levels list[Level], and get levels data from info0.json
+             Settings(): level_index, stored in config.json
+             When did json started to be able to store boolean?
+             Engine(): should register game scene first because of game_manager
+             MenuScene(): init with level bgm, background color, title text color, button color
+             GameManager(): init with level bgm
+             GameScene(): init with level background color, button color
+             WoodCutter(): init with level player color, score text color
+[2025/05/22] brief branch move, level switch
+             Level(): some sounds
+             Engine(): set caption to level name when inited
+
+[2025/05/23] Try switch level without reopening the game
+                Engine(): set level caption
+                WHShape(): set_alpha()
+                MenuScene(): switch_level() set background, bgm, title and button color
+                Overlay(): set_color()
+                Text(): set_color()
+                GameScene(): enter() set background, button color
+                GameManager(): enter() set player color
+             Okay!
+             Save and read score records
+                Level(): records, highest_score, set_record()
+                GameManager(): to_dict(), save()
+                Engine(): auto save
+                Level(): load_record()
+                GameManager(): load_record() succeeded
+             Okay!
+             === Git Pushed === -- Lv2 branch move, in game level switch, record save load
+
+             abcdefghijklmnopqrstuvwxyz

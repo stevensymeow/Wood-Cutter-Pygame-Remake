@@ -9,8 +9,10 @@ from .component import UIComponent
 from src.interface.components import Text, Overlay, Rectangle, Text
 from src.core import GameManager, Game
 from src.data.info import GameInfo
+from src.utils.definition import RGBColor
 
 class WoodCutter(UIComponent):
+    # Pos and size
     x_left: int
     x_right: int
     x: int
@@ -23,6 +25,9 @@ class WoodCutter(UIComponent):
     hline: Rectangle # |
     vline: Rectangle # _
     
+    # Color
+    color: RGBColor
+    
     # Hitbox
     hitbox: pg.Rect
     
@@ -33,6 +38,10 @@ class WoodCutter(UIComponent):
     game_manager: GameManager
     
     def __init__(self, game_manager: GameManager):
+        # Game manager
+        self.game_manager = game_manager
+        
+        # Pos and size
         pcx, pcy = GameSettings.SCREEN_WIDTH / 2, GameSettings.SCREEN_HEIGHT / 2
         hy = GameSettings.SCREEN_HEIGHT
         self.width = GameInfo.wood_cutter_width
@@ -44,8 +53,10 @@ class WoodCutter(UIComponent):
         self.y = hy - self.width/2
         self.pos = -1
         
-        self.hline = Rectangle((0, 0, 0), self.x, self.y, self.line_width, self.width)
-        self.vline = Rectangle((0, 0, 0), self.x, self.y, self.width, self.line_width)
+        self.color = self.game_manager.curr_lv.player_color
+        
+        self.hline = Rectangle(self.color, self.x, self.y, self.line_width, self.width)
+        self.vline = Rectangle(self.color, self.x, self.y, self.width, self.line_width)
         
         # Hitbox
         self.hitbox = pg.Rect(0, 0, self.width, self.width)
@@ -54,8 +65,10 @@ class WoodCutter(UIComponent):
         # GG
         self.GG_text = Text("GG", self.width, "CambriaBold.ttf", (255, 0, 0), self.x-self.width/2, self.y-self.width/2)
         
-        # Game manager
-        self.game_manager = game_manager
+    def set_color(self, color: RGBColor):
+        self.color = color
+        self.hline.set_color(color)
+        self.vline.set_color(color)
     
     def do_cut(self):
         pcx = GameSettings.SCREEN_WIDTH/2

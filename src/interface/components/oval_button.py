@@ -173,11 +173,17 @@ class OvalButton(UIComponent):
     
     @override
     def update(self, dt: float, can_be_hovered: bool = True) -> None:
+        # Hover alpha
+        if self.can_hover:
+            self.oval_button.set_alpha(255)
+        else:
+            self.oval_button.set_alpha(200)
+            
         # Oval
         self.oval_button.update(dt)
         self.hitbox = self.oval_button.hitbox
         
-        if self.hitbox.collidepoint(input_manager.mouse_pos) and self.is_drawn and not(self.moving):
+        if self.hitbox.collidepoint(input_manager.mouse_pos) and self.is_drawn and not(self.moving) and self.can_hover:
             self.hovered = True
             
             # Hover pop
@@ -226,8 +232,10 @@ class OvalButton(UIComponent):
             self.button_text.draw(screen)
             
         # Hover
+        """
         if not(self.can_hover):
             self.dark_overlay.draw(screen)
+        """
         
         # Hover Text
         if self.hover_text_str:
@@ -276,3 +284,6 @@ class OvalButton(UIComponent):
         self.hover_text.update(dt)
         self.hover_text_width = self.hover_text.get_width()
 
+    # Set color
+    def set_color(self, color: tuple[int, int, int]):
+        self.oval_button.set_color(color)

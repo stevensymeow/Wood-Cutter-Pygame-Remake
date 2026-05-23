@@ -1,28 +1,41 @@
 import pygame as pg
 
-from src.utils import GameSettings
+from src.data.info import GameInfo
+from src.utils import GameSettings, Logger
 from src.scenes.scene import Scene
 from src.interface.components import Text, Overlay, Oval, Rectangle, OvalButton
 from src.core.services import scene_manager, sound_manager, input_manager
+from src.core import GameManager
 from typing import override
 
 class MenuScene(Scene):
     # Background
     background: Overlay
     
+    # Game Manager
+    game_manager: GameManager
+    
     # Buttons
+    start_button: OvalButton
     
     # Title
     main_title: Text
     
     def __init__(self):
         super().__init__()
+        
+        # Game Manager
+        self.game_manager = scene_manager.game_manager
+        
         # Background
-        self.background = Overlay((0, 255, 255, 255))
+        self.background = Overlay()
+        background_color = self.game_manager.curr_lv.background_color
+        self.background.set_color(background_color)
         
         # Title
         ux, uy = GameSettings.SCREEN_WIDTH / 2, GameSettings.SCREEN_HEIGHT * 1 / 4
-        self.main_title = Text("Wood Cutter", 64, "Pokemon Solid.ttf", (255, 0, 0), ux, uy - 30)
+        title_color = self.game_manager.curr_lv.title_color
+        self.main_title = Text("Wood Cutter", 64, "Pokemon Solid.ttf", title_color, ux, uy - 30)
         self.main_title.move_by(-self.main_title.get_width()/2, 0)
         
         # Trees
@@ -36,13 +49,23 @@ class MenuScene(Scene):
         self.dx = 0
         
         # Button
-        self.start_button = OvalButton((255, 125, 0), pcx, pcy+100, 180, 60,
+        button_color = self.game_manager.curr_lv.button_color
+        self.start_button = OvalButton(button_color, pcx, pcy+100, 180, 60,
                                        on_click=lambda: scene_manager.change_scene("game"),
                                        text_str="START", text_size=30, text_color=(255, 255, 255))
-        
+        self.nlevel_button = OvalButton(button_color, pcx, pcy+100+10+60, 180, 60,
+                                       on_click=lambda: self.switch_level(1),
+                                       text_str="Next Level", text_size=20, text_color=(255, 255, 255))
+        self.plevel_button = OvalButton(button_color, pcx, pcy+100+10+60+10+60, 180, 60,
+                                       on_click=lambda: self.switch_level(-1),
+                                       text_str="Previous Level", text_size=20, text_color=(255, 255, 255))
+
     @override
     def enter(self) -> None:
-        sound_manager.play_bgm("xylo1.wav")
+        sound_manager.play_bgm(self.game_manager.curr_lv.bgm_path)
+        #sound_manager.play_bgm("Punch.wav")
+        #sound_manager.play_bgm("strongpunch.wav")
+        # Tree
         self.rectangle_1.set_angle()
         self.oval_1.set_angle()
         self.rectangle_2.set_angle()
@@ -52,9 +75,44 @@ class MenuScene(Scene):
     def exit(self) -> None:
         sound_manager.stop_all_sounds()
         sound_manager.play_sound("Meow2.wav")
+        # Tree
+        self.rectangle_1.set_angle()
+        self.oval_1.set_angle()
+        self.rectangle_2.set_angle()
+        self.oval_2.set_angle()
+    
+    # Switch level
+    def switch_level(self, switch: int = 1):
+        switched = False
+        if switch > 0:
+            switched = GameInfo.to_next_level()
+        else:
+            switched = GameInfo.to_prev_level()
+        if switched:
+            curr_lv = self.game_manager.curr_lv
+            Logger.info(f"Current level: {curr_lv.level_label} {curr_lv.level_name}")
+            # BGM
+            sound_manager.play_bgm(curr_lv.bgm_path)
+            # Background
+            self.background.set_color(curr_lv.background_color)
+            # Title text
+            self.main_title.set_color(curr_lv.title_color)
+            # Buttons
+            button_color = curr_lv.button_color
+            self.start_button.set_color(button_color)
+            self.nlevel_button.set_color(button_color)
+            self.plevel_button.set_color(button_color)
+            # Tree
+            self.rectangle_1.set_angle()
+            self.oval_1.set_angle()
+            self.rectangle_2.set_angle()
+            self.oval_2.set_angle()
     
     @override
     def update(self, dt: float):
+        # Background
+        self.background.update(dt)
+        
         # Title
         self.main_title.update(dt)
         
@@ -92,8 +150,13 @@ class MenuScene(Scene):
         self.rectangle_2.update(dt)
         self.oval_2.update(dt)
         
-        # Button
+        # -- Button --
         self.start_button.update(dt)
+        # Level
+        self.nlevel_button.can_hover = self.game_manager.has_next_level
+        self.plevel_button.can_hover = self.game_manager.has_prev_level
+        self.nlevel_button.update(dt)
+        self.plevel_button.update(dt)
         
     @override
     def draw(self, screen: pg.Surface):
@@ -111,5 +174,6 @@ class MenuScene(Scene):
         
         # Button
         self.start_button.draw(screen)
-        
+        self.nlevel_button.draw(screen)
+        self.plevel_button.draw(screen)
         

@@ -11,6 +11,7 @@ from src.interface.components import Text, Overlay, Rectangle, Text
 from src.core import GameManager, Game
 from .falling_object import FallingObject
 from src.data.info import GameInfo
+import random
 
 class Branch(FallingObject):
     # Pos and size
@@ -24,13 +25,13 @@ class Branch(FallingObject):
     # Fall
     y_dropped: int
     
-    # Show
-    show: bool
-    
     # Game manager
     game_manager: GameManager
     
-    def __init__(self, game_manager: GameManager, can_drag: bool = False, pos: int = -1):
+    # Move
+    do_move: bool
+    
+    def __init__(self, game_manager: GameManager, can_drag: bool = False, pos: int = -1, do_move: bool = True):
         """
         Yes, this is the tree branch
         """
@@ -52,22 +53,27 @@ class Branch(FallingObject):
                          color=self.color, hitbox_color=self.hitbox_color,
                          can_drag=can_drag,
                          pos=pos)
+
+        # Move
+        #self.do_move = True if (random.randint(1, 100) < 50) else False
+        self.do_move = do_move
     
     @override
     def update(self, dt: float) -> None:
-        super().update(dt)
+        branch_move = self.game_manager.curr_lv.branch_move and self.do_move
+        super().update(dt, move=branch_move)
     
     @override
     def when_hit_ground(self):
         sound_manager.play_sound("crash.wav")
-        self.show = False
+        self.falling = False
         self.game_manager.fallen_branches += 1
     
     def when_hit_player(self):
-        self.game_manager.state = Game.GG
+        self.game_manager.end_game()
         sound_manager.play_sound("Punch.wav")
         sound_manager.play_sound("Punch1.wav")
-        sound_manager.play_sound("cave.wav")
+        #sound_manager.play_sound("strongpunch.wav")
     
     @override
     def draw_to_surface(self):

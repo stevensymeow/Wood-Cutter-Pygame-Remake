@@ -50,6 +50,13 @@ class PositionCamera:
     def relative_rect(self, rect: Rect) -> Rect:
         return Rect(rect.x + self.x, rect.y + self.y, rect.width, rect.height)
 
+RGBColor = tuple[int, int, int]
+
+class Record(TypedDict):
+    score: int
+    gems: int
+    branches: int
+
 @dataclass
 class Teleport:
     pos: Position

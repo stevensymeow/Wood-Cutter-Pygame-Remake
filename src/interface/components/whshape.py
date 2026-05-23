@@ -16,6 +16,7 @@ class Shape(Enum):
 class WHShape(UIComponent):
     # Pos and Size
     color: tuple[int, int, int]
+    alpha: int
     x: int
     y: int
     pos_x: int
@@ -58,7 +59,9 @@ class WHShape(UIComponent):
         self.pos_x = self.x - self.width / 2
         self.pos_y = self.y - self.height / 2
         self.pos_size = (self.pos_x, self.pos_y, self.width, self.height)
+        self.alpha = 255
         self.surface = pg.Surface((self.width, self.height), pg.SRCALPHA)
+        self.surface.set_alpha(self.alpha)
         #self.hitbox = pg.Rect(*self.pos_size)
         self.hitbox = self.surface.get_rect()
         
@@ -83,6 +86,12 @@ class WHShape(UIComponent):
     def set_color(self, color: tuple[int, int, int]):
         self.color = color
     
+    def set_alpha(self, alpha: int = 255):
+        if alpha < 0: alpha = 0
+        if alpha > 255: alpha = 255
+        if alpha != self.alpha:
+            self.alpha = alpha
+    
     def move_by(self, dx: int, dy: int) -> None:
         self.x += dx
         self.y += dy
@@ -104,6 +113,7 @@ class WHShape(UIComponent):
     def do_rotate(self):
         self.angle = (self.angle + self.degree) % 360
         self.surface = pg.transform.rotozoom(self.surface, self.angle, 1)
+        self.surface.set_alpha(self.alpha)
         self.hitbox = self.surface.get_rect()
         self.hitbox.center = (self.pos_x + self.width/2, self.pos_y + self.height/2)
         self.degree = 0

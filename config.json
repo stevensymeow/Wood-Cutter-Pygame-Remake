@@ -3,5 +3,6 @@
   "SCREEN_HEIGHT": 720,
   "TITLE": "Wood Cutter v0",
   "DEBUG": "True",
-  "AUTO_SAVE": "False"
+  "AUTO_SAVE": "True",
+  "level_index": 1
 }

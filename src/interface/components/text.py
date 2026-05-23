@@ -61,6 +61,9 @@ class Text(UIComponent):
         
         screen.blit(self.text_surface, (self.pos_x, self.pos_y))
 
+    def set_color(self, color: tuple[int, int, int]):
+        self.color = color
+    
     def get_width(self):
         return self.text_surface.get_width()
 

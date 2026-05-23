@@ -24,9 +24,6 @@ class Gem(FallingObject):
     # Fall
     y_dropped: int
     
-    # Show
-    show: bool
-    
     # Game manager
     game_manager: GameManager
     
@@ -55,17 +52,18 @@ class Gem(FallingObject):
     
     @override
     def update(self, dt: float) -> None:
-        super().update(dt)
+        gem_move = False
+        super().update(dt, move=gem_move)
     
     @override
     def when_hit_ground(self):
         sound_manager.play_sound("Squish Pop.wav")
-        self.show = False
+        self.falling = False
     
     def when_hit_player(self):
         sound_manager.play_sound("eat.wav")
         self.game_manager.collected_gems += 1
-        self.show = False
+        self.falling = False
     
     @override
     def draw_to_surface(self):

@@ -3,7 +3,7 @@ import pygame as pg
 from src.utils import GameSettings, Logger
 from .services import scene_manager, input_manager, resource_manager
 #from src.data.info import Info
-#from src.data.info import GameInfo
+from src.data.info import GameInfo
 
 from src.scenes.menu_scene import MenuScene
 from src.scenes.game_scene import GameScene
@@ -35,17 +35,19 @@ class Engine:
         #GameSettings.save_config() # Only first time
         #GameSettings.load_config()
         
-        # Set the caption
-        pg.display.set_caption(GameSettings.TITLE)
         
         # By me: initialize GameInfo here
         #GameInfo.load_info()
         
         # Scene register
-        scene_manager.register_scene("menu", MenuScene())
         scene_manager.register_scene("game", GameScene())
+        scene_manager.register_scene("menu", MenuScene())
         
         scene_manager.change_scene("menu")
+        
+        # Set the caption
+        curr_lv = scene_manager.game_manager.curr_lv
+        pg.display.set_caption(f"{GameSettings.TITLE}: {curr_lv.level_label} {curr_lv.level_name}")
         
     def run(self):
         Logger.info("Running the Game Loop ...")
@@ -88,26 +90,30 @@ class Engine:
                 Logger.info("Change game screen size back to default")
                 GameSettings.default_screen_size()
                 self.screen = pg.display.set_mode((GameSettings.SCREEN_WIDTH, GameSettings.SCREEN_HEIGHT), pg.RESIZABLE)
+        
+        # Level set caption
+        curr_lv = scene_manager.game_manager.curr_lv
+        pg.display.set_caption(f"{GameSettings.TITLE}: {curr_lv.level_label} {curr_lv.level_name}")
+        
+        # Temp: switch level
+        """
+        if GameSettings.LEVEL_SWITCHED:
+            self.end()
+        """
 
     # By me: engine end
     def end(self):
         Logger.info("Bye")
              
-        """   
+           
         # Auto save
         if GameSettings.AUTO_SAVE:
-            if GameSettings.FILE_LOADED:
-                scene_manager.game_manager.save()
-                Logger.info("Auto save on, file loaded, auto saved")
-            else:
-                Logger.info("Auto save on, file not loaded, don't auto save")
+            scene_manager.game_manager.save()
+            Logger.info("Auto save on, file loaded, auto saved")
         else:
-            if GameSettings.FILE_LOADED:
-                Logger.info("Auto save off, file loaded, changes not saved")
-            else:
-                Logger.info("Auto save off, file not loaded, changes not saved")
+            Logger.info("Auto save off, changes not saved")
                 
-        """
+        
         GameSettings.save_config()
         self.running = False
     
