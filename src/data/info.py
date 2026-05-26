@@ -7,6 +7,9 @@ class Info:
     # json path
     path: int
     
+    # version
+    version: str = "v0"
+    
     # Info
     bark_width: int = 80
     branch_width: int = 150
@@ -15,8 +18,6 @@ class Info:
     gem_height: int = 80
     branch_space: int = 300
     wood_cutter_width: int = 80
-    gravity: int = 5
-    branch_move_speed: int = 5
     
     # Levels
     levels: list[Level]
@@ -67,6 +68,7 @@ class Info:
             level_datas.append(level.to_dict())
         
         return {
+            "version": self.version,
             "bark_width": self.bark_width,
             "branch_width": self.branch_width,
             "branch_height": self.branch_height,
@@ -74,8 +76,6 @@ class Info:
             "gem_height": self.gem_height,
             "branch_space": self.branch_space,
             "wood_cutter_width": self.wood_cutter_width,
-            "gravity": self.gravity,
-            "branch_move_speed": self.branch_move_speed,
             "levels": level_datas
         }
 
@@ -89,6 +89,8 @@ class Info:
         with open(path, "r") as f:
             data: dict[str, object] = json.load(f)
         
+        self.version = data.get("version") or self.version
+        
         self.bark_width = data.get("bark_width") or self.bark_width
         self.branch_width = data.get("branch_width") or self.branch_width
         self.branch_height = data.get("branch_height") or self.branch_height
@@ -96,8 +98,6 @@ class Info:
         self.gem_height = data.get("gem_height") or self.gem_height
         self.branch_space = data.get("branch_space") or self.branch_space
         self.wood_cutter_width = data.get("wood_cutter_width") or self.wood_cutter_width
-        self.gravity = data.get("gravity") or self.gravity
-        self.branch_move_speed = data.get("branch_move_speed") or self.branch_move_speed
         
         # Levels
         level_datas: list[dict[str, object]] = data.get("levels") or []

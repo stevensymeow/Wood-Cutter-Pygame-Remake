@@ -52,8 +52,7 @@ class Gem(FallingObject):
     
     @override
     def update(self, dt: float) -> None:
-        gem_move = False
-        super().update(dt, move=gem_move)
+        super().update(dt)
     
     @override
     def when_hit_ground(self):

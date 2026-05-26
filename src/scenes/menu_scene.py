@@ -3,7 +3,7 @@ import pygame as pg
 from src.data.info import GameInfo
 from src.utils import GameSettings, Logger
 from src.scenes.scene import Scene
-from src.interface.components import Text, Overlay, Oval, Rectangle, OvalButton
+from src.interface.components import Text, Overlay, Oval, Rectangle, OvalButton, RunningText
 from src.core.services import scene_manager, sound_manager, input_manager
 from src.core import GameManager
 from typing import override
@@ -48,6 +48,11 @@ class MenuScene(Scene):
         self.out = True
         self.dx = 0
         
+        # Running Text
+        font = GameSettings.TEXT_FONT
+        run_text = "As you can see, this is the classic Poper-cop313 Wood Cutter game REMAKE!!!"
+        self.running_text = RunningText(run_text, 20, font, title_color)
+        
         # Button
         button_color = self.game_manager.curr_lv.button_color
         self.start_button = OvalButton(button_color, pcx, pcy+100, 180, 60,
@@ -70,6 +75,8 @@ class MenuScene(Scene):
         self.oval_1.set_angle()
         self.rectangle_2.set_angle()
         self.oval_2.set_angle()
+        # Running Text
+        self.running_text.pos_init()
     
     @override
     def exit(self) -> None:
@@ -80,6 +87,8 @@ class MenuScene(Scene):
         self.oval_1.set_angle()
         self.rectangle_2.set_angle()
         self.oval_2.set_angle()
+        # Running Text
+        self.running_text.pos_init()
     
     # Switch level
     def switch_level(self, switch: int = 1):
@@ -97,6 +106,8 @@ class MenuScene(Scene):
             self.background.set_color(curr_lv.background_color)
             # Title text
             self.main_title.set_color(curr_lv.title_color)
+            # Running text
+            self.running_text.set_color(curr_lv.title_color)
             # Buttons
             button_color = curr_lv.button_color
             self.start_button.set_color(button_color)
@@ -112,6 +123,13 @@ class MenuScene(Scene):
     def update(self, dt: float):
         # Background
         self.background.update(dt)
+        
+        # Running Text
+        curr_lv = self.game_manager.curr_lv
+        as_s = "As you can see, this is the classic Poper-cop313 Wood Cutter game REMAKE!!!"
+        c_l = f"Current level {curr_lv.level_label} {curr_lv.level_name}, previous highest score: {curr_lv.highest_score}"
+        self.running_text.set_text(c_l)
+        self.running_text.update(dt)
         
         # Title
         self.main_title.update(dt)
@@ -176,4 +194,7 @@ class MenuScene(Scene):
         self.start_button.draw(screen)
         self.nlevel_button.draw(screen)
         self.plevel_button.draw(screen)
+        
+        # Running Text
+        self.running_text.draw(screen)
         

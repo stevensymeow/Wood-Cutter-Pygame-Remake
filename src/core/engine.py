@@ -32,9 +32,11 @@ class Engine:
 
         # By me: do some initializing of GameSettings here
         #GameSettings.json_path_init()
-        #GameSettings.save_config() # Only first time
+        GameSettings.save_config()
         #GameSettings.load_config()
         
+        # Get version
+        GameSettings.get_version()
         
         # By me: initialize GameInfo here
         #GameInfo.load_info()
@@ -108,6 +110,8 @@ class Engine:
            
         # Auto save
         if GameSettings.AUTO_SAVE:
+            if scene_manager.is_game_scene:
+                scene_manager.game_manager.set_record()
             scene_manager.game_manager.save()
             Logger.info("Auto save on, file loaded, auto saved")
         else:

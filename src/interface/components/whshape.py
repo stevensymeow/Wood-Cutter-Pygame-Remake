@@ -16,7 +16,7 @@ class Shape(Enum):
 class WHShape(UIComponent):
     # Pos and Size
     color: tuple[int, int, int]
-    alpha: int
+    alpha: int = 255
     x: int
     y: int
     pos_x: int
@@ -44,7 +44,8 @@ class WHShape(UIComponent):
         color: tuple[int, int, int],
         x: int, y: int,
         width: int, height: int,
-        can_drag: bool = False
+        can_drag: bool = False,
+        alpha: int = 255
     ):
         """
         Draws an shape of width and height
@@ -59,7 +60,7 @@ class WHShape(UIComponent):
         self.pos_x = self.x - self.width / 2
         self.pos_y = self.y - self.height / 2
         self.pos_size = (self.pos_x, self.pos_y, self.width, self.height)
-        self.alpha = 255
+        self.alpha = alpha
         self.surface = pg.Surface((self.width, self.height), pg.SRCALPHA)
         self.surface.set_alpha(self.alpha)
         #self.hitbox = pg.Rect(*self.pos_size)
@@ -91,6 +92,10 @@ class WHShape(UIComponent):
         if alpha > 255: alpha = 255
         if alpha != self.alpha:
             self.alpha = alpha
+    
+    def change_alpha(self, dalpha: int):
+        alpha = self.alpha + dalpha
+        self.set_alpha(alpha)
     
     def move_by(self, dx: int, dy: int) -> None:
         self.x += dx
@@ -160,9 +165,9 @@ class WHShape(UIComponent):
                 mouse_x, mouse_y = input_manager.mouse_pos
                 self.set_pos(mouse_x + self.drag_dx, mouse_y + self.drag_dy)
                 
-            if input_manager.mouse_pressed(3) and self.hitbox.collidepoint(input_manager.mouse_pos):
-                pcx, pcy = GameSettings.SCREEN_WIDTH / 2, GameSettings.SCREEN_HEIGHT / 2
-                Logger.info(f"{self.__class__.__name__}: (x, y) = {self.x, self.pos_y}, {self.x - pcx, self.y - pcy} \t {pcx, pcy}")
+        if input_manager.mouse_pressed(3) and self.hitbox.collidepoint(input_manager.mouse_pos) and GameSettings.DEBUG:
+            pcx, pcy = GameSettings.SCREEN_WIDTH / 2, GameSettings.SCREEN_HEIGHT / 2
+            Logger.info(f"{self.__class__.__name__}: (x, y) = {self.x, self.pos_y}, {self.x - pcx, self.y - pcy} \t {pcx, pcy}")
     
     @override
     def draw(self, screen: pg.Surface) -> None:

@@ -57,7 +57,6 @@ class RunningText(Text):
 
     def pos_init(self):
         self.pos_x = self.x_right
-
     
     @override
     def update(self, dt: float) -> None:

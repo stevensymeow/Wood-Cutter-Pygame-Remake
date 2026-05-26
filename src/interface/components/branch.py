@@ -28,10 +28,9 @@ class Branch(FallingObject):
     # Game manager
     game_manager: GameManager
     
-    # Move
-    do_move: bool
-    
-    def __init__(self, game_manager: GameManager, can_drag: bool = False, pos: int = -1, do_move: bool = True):
+    def __init__(self, game_manager: GameManager, can_drag: bool = False, pos: int = -1, 
+                 do_move: bool = True,
+                 do_emerge: bool = True):
         """
         Yes, this is the tree branch
         """
@@ -48,20 +47,22 @@ class Branch(FallingObject):
         self.color = (204, 122, 0)
         self.hitbox_color = (255, 0, 0)
         
+        # Lv2: Move
+        self.do_move = do_move
+        
+        # Lv3: Emerge
+        self.do_emerge = do_emerge
+        #self.do_emerge = random.randint(1, 100) <= 50
+        
         super().__init__(game_manager=game_manager,  
                          width=self.width, height=self.height, 
                          color=self.color, hitbox_color=self.hitbox_color,
                          can_drag=can_drag,
                          pos=pos)
-
-        # Move
-        #self.do_move = True if (random.randint(1, 100) < 50) else False
-        self.do_move = do_move
     
     @override
     def update(self, dt: float) -> None:
-        branch_move = self.game_manager.curr_lv.branch_move and self.do_move
-        super().update(dt, move=branch_move)
+        super().update(dt)
     
     @override
     def when_hit_ground(self):

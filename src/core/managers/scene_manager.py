@@ -67,6 +67,10 @@ class SceneManager:
         return self._scenes
     
     @property
+    def is_game_scene(self) -> bool:
+        return self.current_scene and self.game_scene and self.current_scene == self.game_scene
+    
+    @property
     def game_scene(self) -> Scene | None:
         return self._scenes.get("game")
     

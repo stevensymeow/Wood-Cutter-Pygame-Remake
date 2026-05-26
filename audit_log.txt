@@ -32,5 +32,19 @@ I don't know what's wrong with me beforeward that I didn't left anything here
                 GameManager(): load_record() succeeded
              Okay!
              === Git Pushed === -- Lv2 branch move, in game level switch, record save load
+[2025/05/23] Save record even if not game over
+                Engine(): when window close, if current scene is game scene, set record
+                GameScene(): game manager set record when go back to menu scene
+             FallingObject(): Lv3 emerge, will only collide or move or draw hitbox when fully shown, y_dropped add abs()
+             GameManager(): emerge same as move
+
+[2025/05/25] FallingObject(): branch move after fully emerged
+             Settings(): config.json save load bool directly
+             Engine(), Settings(), Info(): write v0 in info.json
+
+[2025/05/26] Level(): added %<speed>s, gravity
+             FallingObject(): implied
+             === Git Pushed === -- Lv3 branch emerge, config.json save bool directly
+             keys
 
              abcdefghijklmnopqrstuvwxyz

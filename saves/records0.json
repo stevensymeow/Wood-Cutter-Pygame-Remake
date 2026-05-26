@@ -1,40 +1,13 @@
 {
-  "level_index": 1,
-  "level_label": "Lv2",
-  "level_name": "Magic Tree",
+  "level_index": 2,
+  "level_label": "Lv3",
+  "level_name": "Magic Tree II",
   "levels": [
     {
       "level_label": "Lv1",
       "level_name": "Normal Tree",
       "bgm_path": "xylo1.wav",
       "gg_bgm": "cave.wav",
-      "move_sound": "Teleport2.wav",
-      "background_color": [
-        0,
-        255,
-        255
-      ],
-      "title_color": [
-        255,
-        0,
-        0
-      ],
-      "button_color": [
-        255,
-        125,
-        0
-      ],
-      "player_color": [
-        0,
-        0,
-        0
-      ],
-      "score_color": [
-        0,
-        0,
-        0
-      ],
-      "branch_move": false,
       "highest_score": 0,
       "records": []
     },
@@ -43,33 +16,6 @@
       "level_name": "Magic Tree",
       "bgm_path": "Dance Celebrate.wav",
       "gg_bgm": "cave.wav",
-      "move_sound": "Teleport2.wav",
-      "background_color": [
-        0,
-        0,
-        0
-      ],
-      "title_color": [
-        0,
-        0,
-        255
-      ],
-      "button_color": [
-        0,
-        0,
-        255
-      ],
-      "player_color": [
-        0,
-        230,
-        118
-      ],
-      "score_color": [
-        255,
-        255,
-        255
-      ],
-      "branch_move": true,
       "highest_score": 0,
       "records": []
     },
@@ -78,33 +24,6 @@
       "level_name": "Magic Tree II",
       "bgm_path": "Dance Slow Mo.wav",
       "gg_bgm": "Dance Sitar.wav",
-      "move_sound": "Emerge.wav",
-      "background_color": [
-        0,
-        0,
-        0
-      ],
-      "title_color": [
-        200,
-        0,
-        255
-      ],
-      "button_color": [
-        150,
-        0,
-        255
-      ],
-      "player_color": [
-        150,
-        230,
-        118
-      ],
-      "score_color": [
-        255,
-        255,
-        255
-      ],
-      "branch_move": true,
       "highest_score": 0,
       "records": []
     }

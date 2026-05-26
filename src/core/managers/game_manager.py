@@ -42,10 +42,16 @@ class GameManager:
     level_count: int
     level_index: int
     
+    # -- Features --
     # Branch move
-    branch_count: int
+    branch_count_m: int
     move_count: int     # count until next move
-    branch_move: bool   # whether branches are moving
+    branch_move: bool   # whether branches will move
+    
+    # Branch emerge
+    branch_count_e: int
+    emerge_count: int     # count until next emergin
+    branch_emerge: bool   # whether branches will emerge
     
     # --- Components ---
     # Tree Bark
@@ -56,7 +62,7 @@ class GameManager:
     
     # -- Branches --
     branches: list[Branch]
-    make_new_branch: Callable[[int, bool], Branch]
+    make_new_branch: Callable[[int, bool, bool], Branch]
     
     # -- Gems --
     gems: list[Branch]
@@ -81,10 +87,16 @@ class GameManager:
         self.level_count = len(self.levels)
         self.level_index = GameSettings.level_index
         
+        # --- Features ---
         # Branch move
-        self.branch_count = 0
+        self.branch_count_m = 0
         self.move_count = random.randint(1, 4)
         self.branch_move = False
+        
+        # Branch emerge
+        self.branch_count_e = 0
+        self.emerge_count = random.randint(1, 4)
+        self.branch_emerge = False
         
         # --- Components ---
         # Branches
@@ -114,8 +126,10 @@ class GameManager:
         # -- Branches --
         gm.branches = []
         
-        def new_branch(pos: int = -1, do_move: bool = False) -> Branch:
-            return Branch(gm, pos=pos, do_move=do_move)
+        def new_branch(pos: int = -1, 
+                       do_move: bool = False,
+                       do_emerge: bool = False) -> Branch:
+            return Branch(gm, pos=pos, do_move=do_move, do_emerge=do_emerge)
         gm.make_new_branch = new_branch
         
         # -- Gems --
@@ -142,20 +156,30 @@ class GameManager:
     def has_prev_level(self) -> bool:
         self.level_index = GameSettings.level_index
         return self.level_index > 0
-    
     # -- Levels --
     
     # -- Branches --
     def add_new_branch(self, count: int = 1):
         for _ in range(count):
             pos = random.randint(0, 1)*2 - 1
-            self.branch_count += 1
+            
+            # --- Features ---
+            # Lv2: Branch Move
+            self.branch_count_m += 1
             branch_move = False
-            if self.branch_count > self.move_count:
+            if self.branch_count_m > self.move_count:
                 branch_move = True
-                self.branch_count = 0
+                self.branch_count_m = 0
                 self.move_count = random.randint(1, 4)
-            self.branches.append(self.make_new_branch(pos, branch_move))
+            # Lv3: Branch Emerge
+            self.branch_count_e += 1
+            branch_emerge = False
+            if self.branch_count_e > self.emerge_count:
+                branch_emerge = True
+                self.branch_count_e = 0
+                self.emerge_count = random.randint(1, 4)
+            
+            self.branches.append(self.make_new_branch(pos, branch_move, branch_emerge))
     
     def del_first_branch(self):
         self.branches.pop(0)
@@ -192,8 +216,12 @@ class GameManager:
     def end_game(self):
         self.state = Game.GG
         self.sound_manager.play_sound(self.curr_lv.gg_bgm)
-        record: Record = {"score": self.score, "branches": self.branch_count, "gems": self.collected_gems}
+        self.set_record()
+    
+    def set_record(self):
+        record: Record = {"score": self.score, "branches": self.fallen_branches, "gems": self.collected_gems}
         self.curr_lv.set_record(record)
+        if GameSettings.AUTO_SAVE: self.save()
     
     def game_init(self):
         # Score
@@ -240,6 +268,7 @@ class GameManager:
                 if self.input_manager.key_pressed(pg.K_SPACE):
                     self.state = Game.Paused
                     self.sound_manager.pause_all()
+                    Logger.info("Game paused!")
                 # Score
                 self.score = self.collected_gems + self.fallen_branches
                 if self.score > self.highest_score:
@@ -249,6 +278,7 @@ class GameManager:
                 if self.input_manager.key_pressed(pg.K_SPACE):
                     self.state = Game.Playing
                     self.sound_manager.resume_all()
+                    Logger.info("Game resumed!")
             case Game.GG:
                 self.sound_manager.stop_bgm()
                 # Retry

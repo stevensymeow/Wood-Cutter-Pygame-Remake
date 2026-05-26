@@ -50,7 +50,7 @@ class GameScene(Scene):
         wx, hy = GameSettings.SCREEN_WIDTH, GameSettings.SCREEN_HEIGHT
         button_color = self.game_manager.curr_lv.button_color
         self.back_button = OvalButton(button_color, wx-90-20, hy-60-20, 60, 60,
-                                      on_click=lambda: scene_manager.change_scene("menu"),
+                                      on_click=lambda: self.back_to_menu(),
                                       text_str="BACK", text_size=15, text_color=(255, 255, 255))
         self.retry_button = OvalButton(button_color, 90+20, hy-60-20, 60, 60,
                                       on_click=lambda: self.game_manager.retry(),
@@ -93,6 +93,9 @@ class GameScene(Scene):
         self.gem_text.set_color(score_color)
         self.branch_text.set_color(score_color)
         self.score_text.set_color(score_color)
+        # Text
+        text_color = curr_lv.title_color
+        self.running_text.set_color(text_color)
     
     @override
     def exit(self) -> None:
@@ -106,6 +109,10 @@ class GameScene(Scene):
         # Running Text
         self.running_text.pos_init()
     
+    def back_to_menu(self):
+        self.game_manager.set_record()
+        scene_manager.change_scene("menu")
+    
     @override
     def update(self, dt: float):
         # Game manager
@@ -114,12 +121,25 @@ class GameScene(Scene):
         # Back
         if self.game_manager.state != Game.Playing:
             if input_manager.key_pressed(pg.K_b):
-                scene_manager.change_scene("menu")
+                self.back_to_menu()
         
         # Background
         self.background.update(dt)
         
         # Running Text
+        curr_lv = self.game_manager.curr_lv
+        as_s = "As you can see, this is the classic Poper-cop313 Wood Cutter game REMAKE!!!"
+        c_l = f"Current level {curr_lv.level_label} {curr_lv.level_name}"
+        match (self.game_manager.state):
+            case Game.Entered:
+                self.running_text.set_text(as_s + " "*10 + c_l)
+            case Game.Playing:
+                self.running_text.set_text("")
+                self.running_text.pos_init()
+            case Game.Paused:
+                self.running_text.set_text("Game paused!" + " "*10 + c_l)
+            case Game.GG:
+                self.running_text.set_text("You got crushed by a branch!" + " "*10 + f"Score: {self.game_manager.score}")
         self.running_text.update(dt)
         
         # Buttons

@@ -30,9 +30,16 @@ class FallingObject(WHShape):
     # Game manager
     game_manager: GameManager
     
-    # Move
+    # Lv2: Move
+    do_move: bool = False
     moved: bool
     started_moving: bool
+    
+    # Lv3: Emerge
+    do_emerge: bool = False
+    emerged: bool
+    started_emerging: bool
+    y_dropped_emerged: int # y_dropped when fully emerged
     
     def __init__(self, game_manager: GameManager, 
                  width: int, height: int,
@@ -61,72 +68,157 @@ class FallingObject(WHShape):
             self.x = self.x_right
         else: # should not happen
             self.x = pcx
-        self.pos_init()
         
         # Color
         self.color = color
         self.hitbox_color = hitbox_color
         
-        # Show
+        # Is Falling
         self.falling = True
         
         # Fall
         self.y_dropped = 0
         
-        # Move
+        # Lv2: Move
         self.moved = False
         self.started_moving = False
         
+        # Lv3: Emerge
+        self.emerged = False
+        self.started_emerging = False
+        self.y_dropped_emerged = 0
+        
+        self.pos_init()
+        
         super().__init__(color=color, 
-                         x=self.x, y=0, 
+                         x=self.x, y=self.y, 
                          width=self.width, height=self.height, 
-                         can_drag=can_drag)
+                         can_drag=can_drag,
+                         alpha=self.alpha)
     
     def pos_init(self):
-        self.y = 0
+        hy = GameSettings.SCREEN_HEIGHT
+        # Gravity
+        curr_lv = self.game_manager.curr_lv
+        if curr_lv.gravity > 0:
+            self.y = 0
+        else:
+            self.y = hy
         self.set_pos(self.x, self.y)
         self.y_dropped = 0
+        # Lv3: Emerge
+        emerge = self.do_emerge and self.game_manager.curr_lv.branch_emerge
+        if emerge:
+            self.set_alpha(0)
+        else:
+            self.set_alpha(255)
+    
+    @property
+    def y_at_init(self) -> bool:
+        hy = GameSettings.SCREEN_HEIGHT
+        if self.game_manager.curr_lv.gravity > 0:
+            return self.y == 0
+        else:
+            return self.y == hy
+    
+    @property
+    def y_is_falling(self) -> bool:
+        hy = GameSettings.SCREEN_HEIGHT
+        if self.game_manager.curr_lv.gravity > 0:
+            return self.y < hy
+        else:
+            return self.y > 0
+    
+    @property
+    def y_hit_ground(self) -> bool:
+        hy = GameSettings.SCREEN_HEIGHT
+        if self.game_manager.curr_lv.gravity > 0:
+            return self.y >= hy
+        else:
+            return self.y <= 0
+    
+    @property
+    def fully_emergered(self) -> bool:
+        return self.alpha == 255
     
     @override
-    def update(self, dt: float, move: bool = False) -> None:
+    def update(self, dt: float) -> None:
         match (self.game_manager.state):
             case Game.Entered:
                 pass
             case Game.Playing:
-                hy = GameSettings.SCREEN_HEIGHT
-                if self.y == 0:
+                curr_lv = self.game_manager.curr_lv
+                
+                if self.y_at_init and (self.fully_emergered):
                     sound_manager.play_sound("pop.wav")
-                if self.y < hy:
+                if self.y_is_falling:
                     # Fall
-                    drop = GameInfo.gravity
+                    drop = curr_lv.gravity*curr_lv.fall_speed
                     self.move_by(0, drop)
-                    self.y_dropped += drop
+                    self.y_dropped += abs(drop)
                     # Hit the player
                     if self.hitbox.colliderect(self.game_manager.wood_cutter.hitbox):
-                        self.when_hit_player()
+                        if self.fully_emergered: # fully shown
+                            self.when_hit_player()
                 else:
                     if self.falling:
-                        if self.y >= hy:
+                        if self.y_hit_ground:
                             self.when_hit_ground()
-                # Move to left or right
-                if move and (not self.moved) and self.y_dropped >= GameSettings.SCREEN_HEIGHT/2:
-                    if not self.started_moving:
-                        self.started_moving = True
-                        sound_manager.play_sound(self.game_manager.curr_lv.move_sound)
-                    if self.pos == -1:
-                        if self.x < self.x_right:
-                            self.move_by(GameInfo.branch_move_speed, 0)
+                
+                # --- Features ---
+                screen_height = GameSettings.SCREEN_HEIGHT
+                name = self.__class__.__name__
+                # Lv2: Move to left or right
+                if self.y_dropped >= screen_height/2:
+                    d_drop = 0 # Lv3: Move after emerged
+                    move = self.do_move and self.game_manager.curr_lv.branch_move \
+                        and self.fully_emergered \
+                        and (self.y_dropped >= self.y_dropped_emerged+d_drop)
+                    if move and ((not self.moved) or (self.x != self.x_left and self.x != self.x_right)):
+                        if (not self.started_moving) and self.fully_emergered:
+                            self.started_moving = True
+                            sound_manager.play_sound(self.game_manager.curr_lv.move_sound)
+                            if self.pos == -1:
+                                Logger.info(f"{name} moving right!")
+                            elif self.pos == 1:
+                                Logger.info(f"{name} moving left!")
+                        branch_move_speed = self.game_manager.curr_lv.branch_move_speed
+                        if self.pos == -1:
+                            if self.x < self.x_right:
+                                self.move_by(branch_move_speed, 0)
+                            else:
+                                self.x = self.x_right
+                                self.pos = 1
+                                self.moved = True
+                                self.set_pos(self.x, self.y)
+                                Logger.info(f"{name} finished moving!")
+                        elif self.pos == 1:
+                            if self.x > self.x_left:
+                                self.move_by(-branch_move_speed, 0)
+                            else:
+                                self.x = self.x_left
+                                self.pos = -1
+                                self.moved = True
+                                self.set_pos(self.x, self.y)
+                                Logger.info(f"{name} finished moving!")
+                
+                # Lv3: Emerge
+                if self.y_dropped >= screen_height/3:
+                    emerge = self.do_emerge and self.game_manager.curr_lv.branch_emerge
+                    if emerge and ((not self.emerged) or 0 < self.alpha < 255):
+                        if not self.started_emerging:
+                            self.started_emerging = True
+                            sound_manager.play_sound(self.game_manager.curr_lv.emerge_sound)
+                            Logger.info(f"{name} is emerging!")
+                        if self.alpha < 255:
+                            self.change_alpha(self.game_manager.curr_lv.branch_emerge_speed)
+                            if self.alpha >= 255:
+                                self.emerged = True
+                                Logger.info(f"{name} finished emerging!")
+                                self.y_dropped_emerged = self.y_dropped
                         else:
-                            self.x = self.x_right
-                            self.pos = 1
-                            self.moved = True
-                    elif self.pos == 1:
-                        if self.x > self.x_left:
-                            self.move_by(-GameInfo.branch_move_speed, 0)
-                        else:
-                            self.x = self.x_left
-                            self.pos = -1
-                            self.moved = True
+                            self.emerged = True
+                            Logger.info(f"{name} finished emerging!")
 
         super().update(dt)
     
@@ -143,5 +235,5 @@ class FallingObject(WHShape):
         if self.falling and show:
             super().draw(screen)
         
-        if GameSettings.DRAW_HITBOXES:
+        if GameSettings.DRAW_HITBOXES and self.fully_emergered:
             pg.draw.rect(screen, self.hitbox_color, self.hitbox, 2)

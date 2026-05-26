@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
 
+from src.data.keys import *
+
 if TYPE_CHECKING:
     from src.utils import Logger
     from src.utils.loader import ASSETS_DIR, SAVES_DIR, CONFIG_DIR
@@ -44,6 +46,9 @@ class Settings:
     # Level
     level_index: int = 0
     LEVEL_SWITCHED: bool = False
+    # Key
+    key_enter: str = "ENTER KEY HERE"
+    see_preview: bool = False
     
     def set_volume(self, volume: float):
         self.AUDIO_VOLUME = volume
@@ -107,9 +112,11 @@ class Settings:
             "SCREEN_WIDTH": self.SAVE_WIDTH,
             "SCREEN_HEIGHT": self.SAVE_HEIGHT,
             "TITLE": self.TITLE,
-            "DEBUG": "True" if self.DEBUG else "False",
-            "AUTO_SAVE": "True" if self.AUTO_SAVE else "False",
-            "level_index": self.level_index
+            "DEBUG": self.DEBUG,
+            "AUTO_SAVE": self.AUTO_SAVE,
+            "level_index": self.level_index,
+            "key_enter": self.key_enter,
+            "SEE_PREVIEW": self.see_preview
         }
     
     def save_config(self, do_log: bool = True):
@@ -137,14 +144,33 @@ class Settings:
         screen_width = data.get("SCREEN_WIDTH") or self.SCREEN_WIDTH
         screen_height = data.get("SCREEN_HEIGHT") or self.SCREEN_HEIGHT
         title = data.get("TITLE") or self.TITLE
-        debug = data.get("DEBUG") or "False"
-        auto_save = data.get("AUTO_SAVE") or "True"
+        debug = data.get("DEBUG", False)
+        auto_save = data.get("AUTO_SAVE", True)
         
         self.set_screen_size(screen_width, screen_height)
         self.set_title(title)
-        self.DEBUG = (debug == "True")
-        self.AUTO_SAVE = (auto_save != "False")
+        self.DEBUG = (debug == "True") or (debug == True)
+        self.AUTO_SAVE = (auto_save == "True") or (auto_save == True)
         self.level_index = data.get("level_index") or self.level_index
+        
+        self.key_enter = data.get("key_enter") or self.key_enter
+        self.see_preview = self.key_enter == PREVIEW_KEY
+    
+    # get version
+    def get_version(self):
+        from src.utils import Logger
+        from src.utils.loader import ASSETS_DIR, SAVES_DIR, CONFIG_DIR
+        path = str(ASSETS_DIR / "data" / "info0.json")
+        if os.path.exists(path):
+            Logger.info("Loading version")
+            with open(path, "r") as f:
+                data: dict[str, object] = json.load(f)
+            version = data.get("version")
+            if version:
+                self.VERSION = version
+                Logger.info(f"Got version: {version}")
+                title = self.TITLE
+                self.set_title(title)
     
 GameSettings = Settings()
 GameSettings.load_config_except_path()
