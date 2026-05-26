@@ -245,3 +245,6 @@ surface_rotate_flip.py
 
 # Temporary files
 img_rgb.py
+
+# Config key
+config.json

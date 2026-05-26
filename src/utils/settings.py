@@ -101,7 +101,7 @@ class Settings:
         # Version rename
         for t in title.split():
             if t.lower().startswith("v"):
-                print(t)
+                #print(t)
                 self.TITLE = self.TITLE.replace(t, self.VERSION)
                 break
     

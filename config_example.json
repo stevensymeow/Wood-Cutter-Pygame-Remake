@@ -2,9 +2,9 @@
   "SCREEN_WIDTH": 1000,
   "SCREEN_HEIGHT": 720,
   "TITLE": "Wood Cutter v1",
-  "DEBUG": true,
-  "AUTO_SAVE": false,
-  "level_index": 1,
+  "DEBUG": false,
+  "AUTO_SAVE": true,
+  "level_index": 0,
   "key_enter": "ENTER KEY HERE",
   "SEE_PREVIEW": false
 }
