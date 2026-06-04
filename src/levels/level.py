@@ -14,8 +14,10 @@ class LevelInfo(TypedDict):
     # Color
     background_color: RGBColor
     title_color: RGBColor
+    button_color: RGBColor
     player_color: RGBColor
     score_color: RGBColor
+    text_color: RGBColor
     # Speed
     fall_speed: int
     branch_move_speed: int
@@ -45,6 +47,7 @@ class Level:
     button_color: RGBColor = (255, 125, 0)
     player_color: RGBColor = (0, 0, 0)
     score_color: RGBColor = (0, 0, 0)
+    text_color: RGBColor = (255, 0, 0)
     
     # Speed
     fall_speed: int = 7
@@ -92,17 +95,15 @@ class Level:
         return block
     
     def to_dict(self) -> LevelInfo:
-        block: LevelInfo = {
-            "level_label": self.level_label,
-            "level_name": self.level_name,
-            "bgm_path": self.bgm_path,
-            "gg_bgm": self.gg_bgm,
-            "background_color": self.background_color,
-            "title_color": self.title_color,
-            "button_color": self.button_color,
-            "player_color": self.player_color,
-            "score_color": self.score_color,
-        }
+        block: LevelInfo = self.make_block()
+        
+        # Color
+        block["background_color"] = self.background_color
+        block["title_color"] = self.title_color
+        block["button_color"] = self.button_color
+        block["player_color"] = self.player_color
+        block["score_color"] = self.score_color
+        block["text_color"] = self.text_color
         
         # Speed
         block["fall_speed"] = self.fall_speed
@@ -165,6 +166,7 @@ class Level:
         level.button_color = data.get("button_color") or level.button_color
         level.player_color = data.get("player_color") or level.player_color
         level.score_color = data.get("score_color") or level.score_color
+        level.text_color = data.get("text_color") or level.text_color
         
         # Speed
         level.fall_speed = data.get("fall_speed") or level.fall_speed

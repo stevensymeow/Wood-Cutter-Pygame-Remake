@@ -94,7 +94,7 @@ class GameScene(Scene):
         self.branch_text.set_color(score_color)
         self.score_text.set_color(score_color)
         # Text
-        text_color = curr_lv.title_color
+        text_color = curr_lv.text_color
         self.running_text.set_color(text_color)
     
     @override

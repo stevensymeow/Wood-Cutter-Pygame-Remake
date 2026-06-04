@@ -9,6 +9,8 @@ from src.scenes.menu_scene import MenuScene
 from src.scenes.game_scene import GameScene
 #from src.scenes.setting_scene import SettingScene
 
+import time
+
 class Engine:
 
     screen: pg.Surface              # Screen Display of the Game
@@ -30,13 +32,13 @@ class Engine:
         self.window_icon = resource_manager.get_image("window_icon/mochicat.png")
         pg.display.set_icon(self.window_icon)
 
-        # By me: do some initializing of GameSettings here
-        #GameSettings.json_path_init()
-        GameSettings.save_config()
-        #GameSettings.load_config()
-        
+        # -- GameSettings --
         # Get version
         GameSettings.get_version()
+        GameSettings.save_config()
+        #GameSettings.json_path_init()
+        #GameSettings.load_config()
+        
         
         # By me: initialize GameInfo here
         #GameInfo.load_info()
@@ -57,9 +59,21 @@ class Engine:
         try:
             while self.running:
                 dt = self.clock.tick(GameSettings.FPS) / 1000.0
+                t0 = time.monotonic()
                 self.handle_events()
+                t1 = time.monotonic()
                 self.update(dt)
+                t2 = time.monotonic()
                 self.render()
+                t3 = time.monotonic()
+                total = (t3 - t0) * 1000
+                if total > 200:
+                    Logger.warning(
+                        f"Slow frame: {total:.0f}ms "
+                        f"(events={1000*(t1-t0):.0f} "
+                        f"update={1000*(t2-t1):.0f} "
+                        f"draw={1000*(t3-t2):.0f})"
+                    )
         except KeyboardInterrupt:
             Logger.warning("Don't kill me like that if not necessary!")
             self.end()

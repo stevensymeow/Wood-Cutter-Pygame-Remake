@@ -47,4 +47,7 @@ I don't know what's wrong with me beforeward that I didn't left anything here
              === Git Pushed === -- Lv3 branch emerge, config.json save bool directly
              keys
 
+[2025/06/02] Level(): text_color
+             MenuScene(), GameScene(): implied
+
              abcdefghijklmnopqrstuvwxyz

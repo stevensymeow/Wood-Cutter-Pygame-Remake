@@ -255,6 +255,7 @@ class GameManager:
                 left_bound = self.wood_cutter.x_left - self.wood_cutter.width/2
                 right_bound = self.wood_cutter.x_right + self.wood_cutter.width/2
                 start_condition = self.input_manager.key_pressed(pg.K_LEFT) or self.input_manager.key_pressed(pg.K_RIGHT) or \
+                                  self.input_manager.key_pressed(pg.K_a) or self.input_manager.key_pressed(pg.K_d) or \
                     (self.input_manager.mouse_pressed(1) and left_bound <= self.input_manager.mouse_pos[0] <= right_bound)
                 if start_condition:
                     self.game_init()

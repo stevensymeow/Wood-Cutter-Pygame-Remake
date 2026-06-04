@@ -38,6 +38,11 @@
         0,
         0
       ],
+      "text_color": [
+        0,
+        0,
+        255
+      ],
       "fall_speed": 7,
       "branch_move_speed": 10,
       "branch_emerge_speed": 15,
@@ -77,6 +82,11 @@
         255,
         255
       ],
+      "text_color": [
+        255,
+        255,
+        0
+      ],
       "fall_speed": 7,
       "branch_move_speed": 10,
       "branch_emerge_speed": 15,
@@ -113,6 +123,11 @@
       ],
       "score_color": [
         255,
+        255,
+        255
+      ],
+      "text_color": [
+        0,
         255,
         255
       ],

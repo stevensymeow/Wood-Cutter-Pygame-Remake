@@ -51,7 +51,8 @@ class MenuScene(Scene):
         # Running Text
         font = GameSettings.TEXT_FONT
         run_text = "As you can see, this is the classic Poper-cop313 Wood Cutter game REMAKE!!!"
-        self.running_text = RunningText(run_text, 20, font, title_color)
+        text_color = self.game_manager.curr_lv.text_color
+        self.running_text = RunningText(run_text, 20, font, text_color)
         
         # Button
         button_color = self.game_manager.curr_lv.button_color
@@ -107,7 +108,7 @@ class MenuScene(Scene):
             # Title text
             self.main_title.set_color(curr_lv.title_color)
             # Running text
-            self.running_text.set_color(curr_lv.title_color)
+            self.running_text.set_color(curr_lv.text_color)
             # Buttons
             button_color = curr_lv.button_color
             self.start_button.set_color(button_color)

@@ -72,9 +72,9 @@ class WoodCutter(UIComponent):
     
     def do_cut(self):
         pcx = GameSettings.SCREEN_WIDTH/2
-        left_condition = input_manager.key_down(pg.K_LEFT) or \
+        left_condition = input_manager.key_down(pg.K_LEFT) or input_manager.key_down(pg.K_a) or \
         (input_manager.mouse_down(1) and input_manager.mouse_pos[0] < pcx)
-        right_condition = input_manager.key_down(pg.K_RIGHT) or \
+        right_condition = input_manager.key_down(pg.K_RIGHT) or input_manager.key_down(pg.K_d) or \
         (input_manager.mouse_down(1) and input_manager.mouse_pos[0] > pcx)
         if self.pos == -1:
             if right_condition:
