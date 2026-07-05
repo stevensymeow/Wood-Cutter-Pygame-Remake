@@ -52,6 +52,11 @@ class Gem(FallingObject):
     
     @override
     def update(self, dt: float) -> None:
+        if self.game_manager.state == Game.Playing:
+            if self.game_manager.touch_any_branch(self.hitbox):
+                Logger.info("Gem touched branch!!!!")
+                self.move_by(0, 10*self.game_manager.curr_lv.gravity)
+        
         super().update(dt)
     
     @override
@@ -59,6 +64,7 @@ class Gem(FallingObject):
         sound_manager.play_sound("Squish Pop.wav")
         self.falling = False
     
+    @override
     def when_hit_player(self):
         sound_manager.play_sound("eat.wav")
         self.game_manager.collected_gems += 1

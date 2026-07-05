@@ -6,7 +6,7 @@ from src.core.services import input_manager, sound_manager
 from src.utils import Logger
 from typing import Callable, override
 from .component import UIComponent
-from src.interface.components import Text, Overlay, Rectangle, Text
+from src.interface.components import Text, Overlay, Rectangle, Oval, Text
 from src.core import GameManager, Game
 from src.data.info import GameInfo
 from src.utils.definition import RGBColor
@@ -37,6 +37,10 @@ class WoodCutter(UIComponent):
     # Game manager
     game_manager: GameManager
     
+    # Invincible
+    invincible: bool
+    inv_oval: Oval
+    
     def __init__(self, game_manager: GameManager):
         # Game manager
         self.game_manager = game_manager
@@ -46,11 +50,16 @@ class WoodCutter(UIComponent):
         hy = GameSettings.SCREEN_HEIGHT
         self.width = GameInfo.wood_cutter_width
         self.line_width = 2
+        
         self.dx = GameInfo.bark_width/2 + self.width/4
         self.x_left = pcx - self.dx
         self.x_right = pcx + self.dx
         self.x = self.x_left
-        self.y = hy - self.width/2
+        
+        self.y_bottom = hy - self.width/2
+        self.y_top = self.width/2
+        self.y = self.y_bottom
+        
         self.pos = -1
         
         self.color = self.game_manager.curr_lv.player_color
@@ -65,6 +74,11 @@ class WoodCutter(UIComponent):
         # GG
         self.GG_text = Text("GG", self.width, "CambriaBold.ttf", (255, 0, 0), self.x-self.width/2, self.y-self.width/2)
         
+        # Invincible
+        self.invincible = False
+        self.inv_oval = Oval((255, 255, 0), self.x, self.y, self.width, self.width)
+        self.inv_oval.set_alpha(100)
+        
     def set_color(self, color: RGBColor):
         self.color = color
         self.hline.set_color(color)
@@ -76,6 +90,7 @@ class WoodCutter(UIComponent):
         (input_manager.mouse_down(1) and input_manager.mouse_pos[0] < pcx)
         right_condition = input_manager.key_down(pg.K_RIGHT) or input_manager.key_down(pg.K_d) or \
         (input_manager.mouse_down(1) and input_manager.mouse_pos[0] > pcx)
+        
         if self.pos == -1:
             if right_condition:
                 self.go_right()
@@ -86,12 +101,23 @@ class WoodCutter(UIComponent):
                 self.go_left()
             elif right_condition:
                 self.go_right()
+        
+        curr_lv = self.game_manager.curr_lv
+        gravity = curr_lv.gravity
+        if gravity > 0:
+            self.y = self.y_bottom
+        else:
+            self.y = self.y_top
+            
         if self.game_manager.state == Game.Playing:
             self.hline.set_pos(self.x, self.y)
             self.vline.set_pos(self.x, self.y)
             degree = 8
-            self.hline.rotate(degree*self.pos)
-            self.vline.rotate(degree*self.pos)
+            self.hline.rotate(degree*self.pos*gravity)
+            self.vline.rotate(degree*self.pos*gravity)
+            
+            # Invicible
+            self.inv_oval.set_pos(self.x, self.y)
     
     def go_left(self):
         self.pos = -1
@@ -103,10 +129,20 @@ class WoodCutter(UIComponent):
     
     def pos_init(self):
         self.x = self.x_left
+        gravity = self.game_manager.curr_lv.gravity
+        if gravity > 0:
+            self.y = self.y_bottom
+        else:
+            self.y = self.y_top
+        
         self.hline.set_pos(self.x, self.y)
         self.vline.set_pos(self.x, self.y)
         self.hline.set_angle()
         self.vline.set_angle()
+        
+        # Invicible
+        self.inv_oval.set_pos(self.x, self.y)
+        
         # Hitbox
         self.hitbox = pg.Rect(0, 0, self.width, self.width)
         self.hitbox.center = (self.x, self.y)
@@ -119,6 +155,7 @@ class WoodCutter(UIComponent):
         match (self.game_manager.state):
             case Game.Entered:
                 self.pos_init()
+                self.invincible = False
             case Game.Playing:
                 # Do Cut
                 self.do_cut()
@@ -127,14 +164,23 @@ class WoodCutter(UIComponent):
                 self.hitbox = pg.Rect(0, 0, self.width, self.width)
                 self.hitbox.center = (self.x, self.y)
         
+        # Invincible
+        self.inv_oval.set_pos(self.x, self.y)
+        self.inv_oval.update(dt)
+        
         # GG
         self.GG_text.set_pos(self.x-self.GG_text.get_width()/2, self.y-self.width/2)
+        self.GG_text.update(dt)
     
     @override
     def draw(self, screen: pg.Surface) -> None:
         if self.game_manager.state != Game.GG:
             self.hline.draw(screen)
             self.vline.draw(screen)
+            
+            # Invincible
+            if self.invincible:
+                self.inv_oval.draw(screen)
         else:
             # GG
             self.GG_text.draw(screen)

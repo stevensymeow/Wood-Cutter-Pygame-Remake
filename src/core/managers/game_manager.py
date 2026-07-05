@@ -7,6 +7,7 @@ import json
 import os
 from typing import Callable
 from typing import TYPE_CHECKING
+import time
 from src.data.info import GameInfo
 from src.levels import Level
 from src.utils.definition import RGBColor, Record
@@ -68,6 +69,11 @@ class GameManager:
     gems: list[Branch]
     make_new_gem: Callable[[int], Gem]
     
+    # --- Gravity Switch Time ---
+    last_switch: float
+    will_switch: bool
+    g_switch_chosen: bool
+    
     def __init__(self, input_manager: InputManager, sound_manager: SoundManager):
         # Managers
         self.input_manager = input_manager
@@ -106,7 +112,12 @@ class GameManager:
         
         # Level Records
         self.load_record()
-    
+
+        # --- Gravity Switch Time ---
+        self.last_switch = 0
+        self.will_switch = False
+        self.g_switch_chosen = False
+        
     @classmethod
     def make(cls, input_manager: InputManager, sound_manager: SoundManager) -> "GameManager":
         from src.interface.components import OvalButton, WoodCutter, Branch, Gem, Rectangle
@@ -238,6 +249,9 @@ class GameManager:
         
         # -- Gems --
         self.del_all_gems()
+        
+        # Gravity
+        self.curr_lv.init_gravity()
     
     # Retry
     def retry(self):
@@ -245,11 +259,43 @@ class GameManager:
         self.sound_manager.stop_all_sounds()
         self.game_init()
     
+    def deal_gravity_switch(self):
+        if self.state == Game.Entered or self.state == Game.GG:
+            self.g_switch_chosen = False
+        elif self.state == Game.Playing:
+            if self.curr_lv.gravity_switch:    
+                now = time.monotonic()
+                if now - self.last_switch > self.curr_lv.switch_time/2:
+                    if not self.g_switch_chosen:
+                        self.g_switch_chosen = True
+                        roll = random.randint(1, 100)
+                        self.will_switch = roll > 50
+                        if self.will_switch:
+                            Logger.info("Will switch gravity, beware!!!!!!")
+                            self.sound_manager.play_sound(self.curr_lv.gravity_switch_sound)
+                
+                if now - self.last_switch > self.curr_lv.switch_time:
+                    self.g_switch_chosen = False
+                    self.last_switch = now
+                    if self.will_switch:
+                        self.sound_manager.play_sound(self.curr_lv.gravity_switch_sound)
+                        Logger.info("Switching Gravity!!!!!!")
+                        self.curr_lv.toggle_gravity()
+                        self.will_switch = False
+                        # Invicibility
+                        Logger.info("Player is now invincible!!!!!")
+                        self.wood_cutter.invincible = True
+                
+                if now - self.last_switch > self.curr_lv.invicible_time:
+                    if self.wood_cutter.invincible:
+                        Logger.info("Player is now mortal!!!!!!")
+                        self.wood_cutter.invincible = False
+    
     def update(self, dt: float) -> None:
         # Level index
         self.level_index = GameSettings.level_index
         
-        # State
+        # -- State --
         match (self.state):
             case Game.Entered:
                 left_bound = self.wood_cutter.x_left - self.wood_cutter.width/2
@@ -262,8 +308,12 @@ class GameManager:
                     self.state = Game.Playing
                     self.sound_manager.play_bgm(self.curr_lv.bgm_path)
                     #self.sound_manager.play_bgm("dance celebrate.wav")
-                    self.add_new_branch()
+                    #self.add_new_branch()
                     #self.add_new_gem()
+                    
+                    # --- Gravity Switch ---
+                    self.last_switch = time.monotonic()
+                    self.curr_lv.init_gravity()
             case Game.Playing:
                 # Pause
                 if self.input_manager.key_pressed(pg.K_SPACE):
@@ -290,6 +340,9 @@ class GameManager:
         if self.input_manager.key_pressed(pg.K_F3):
             GameSettings.toggle_hitbox_debug()
         
+        # --- Gravity Switch ---
+        self.deal_gravity_switch()
+        
         # --- Components ---
         # Tree Bark
         self.tree_bark.update(dt)
@@ -299,30 +352,49 @@ class GameManager:
         
         # -- Branch --
         # Branches
+        if self.curr_lv.gravity_switch:
+            gravity = self.curr_lv.gravity
+            key_func: Callable[[Branch], int] = lambda branch: branch.y
+            rev = gravity>0
+            self.branches.sort(key=key_func, reverse=rev)
+        
         if self.state == Game.Playing:
             if self.branches:
                 space = GameInfo.branch_space
-                if self.branches[-1].y_dropped >= space:
+                if self.branches[-1].y_dist_from_init >= space:
                     self.add_new_branch()
-                    #Logger.info(f"Branches: {' '.join([str(branch.y_dropped) for branch in self.branches])}")
+                    #Logger.info(f"Gravity: {self.curr_lv.gravity}")
+                    #Logger.info(f"Branches y: {' '.join([str(branch.y) for branch in self.branches])}")
+                    #Logger.info(f"Branches dropped: {' '.join([str(branch.y_dropped) for branch in self.branches])}")
                 if not self.branches[0].falling:
                     self.del_first_branch()
+            else:
+                self.add_new_branch()
             
         for branch in self.branches:
             branch.update(dt)
             
         # -- Gem --
         # Gems
+        if self.curr_lv.gravity_switch:
+            gravity = self.curr_lv.gravity
+            key_func: Callable[[Gem], int] = lambda gem: gem.y
+            rev = gravity>0
+            self.gems.sort(key=key_func, reverse=rev)
+        
         if self.state == Game.Playing:
             space = GameInfo.branch_space
             if self.gems:
-                if self.gems[-1].y_dropped >= space:
+                last_gem = self.gems[-1]
+                last_branch = self.branches[-1]
+                if last_gem.y_dist_from_init >= space/2 and last_branch.y_dist_from_init >= space/2 and \
+                  last_gem.y_dist_from_init > last_branch.y_dist_from_init:
                     self.add_new_gem()
                     #Logger.info(f"Gems: {' '.join([str(gem.y_dropped) for gem in self.gems])}")
                 if not self.gems[0].falling:
                     self.del_first_gem()
             else:
-                if self.branches and self.branches[-1].y_dropped >= space/2:
+                if self.branches and self.branches[-1].y_dist_from_init >= space/2:
                     self.add_new_gem()
             
         for gem in self.gems:
@@ -344,7 +416,14 @@ class GameManager:
         
         # Wood Cutter
         self.wood_cutter.draw(screen)
-        
+    
+    def touch_any_branch(self, hitbox: pg.Rect) -> bool:
+        """Check if touched any branch"""
+        for branch in self.branches:
+            if hitbox.colliderect(branch.hitbox):
+                return True
+        return False
+    
     def to_dict(self) -> dict[str, object]:
         data: dict[str, object] = {}
         data["level_index"] = self.level_index
@@ -373,6 +452,8 @@ class GameManager:
             data: dict[str, object] = json.load(f)
         
         level_data: list[dict[str, object]] = data["levels"]
+        record_cnt = len(level_data)
         for i in range(self.level_count):
+            if i >= record_cnt-1: break
             self.levels[i].load_record(level_data[i])
         

@@ -41,6 +41,9 @@ class FallingObject(WHShape):
     started_emerging: bool
     y_dropped_emerged: int # y_dropped when fully emerged
     
+    # Lv4
+    been_hit: bool = False
+    
     def __init__(self, game_manager: GameManager, 
                  width: int, height: int,
                  color: tuple[int, int, int], hitbox_color: tuple[int, int, int],
@@ -141,6 +144,35 @@ class FallingObject(WHShape):
     def fully_emergered(self) -> bool:
         return self.alpha == 255
     
+    @property
+    def y_dist_from_init(self) -> int:
+        hy = GameSettings.SCREEN_HEIGHT
+        gravity = self.game_manager.curr_lv.gravity
+        if gravity > 0:
+            return self.y
+        else:
+            return hy - self.y
+    
+    def check_hit(self) -> bool:
+        if self.been_hit:
+            return True
+        if self.game_manager.wood_cutter.invincible and self.fully_emergered or input_manager.key_down(pg.K_t) or input_manager.mouse_down(3):
+            if not self.been_hit:
+                Logger.info("Player used his invincibility!!!!!!")
+                sound_manager.play_sound("Punch1.wav")
+                self.been_hit = True
+            return True
+        return False
+    
+    def been_hit_fly_away(self):
+        if self.game_manager.state == Game.Playing:
+            if self.been_hit:
+                wx = GameSettings.SCREEN_WIDTH
+                if (self.pos == -1 and self.x > 0) or (self.pos == 1 and self.x < wx):
+                    self.move_by(20*self.pos, 0)
+                else:
+                    self.falling = False
+    
     @override
     def update(self, dt: float) -> None:
         match (self.game_manager.state):
@@ -150,22 +182,32 @@ class FallingObject(WHShape):
                 curr_lv = self.game_manager.curr_lv
                 
                 if self.y_at_init and (self.fully_emergered):
-                    sound_manager.play_sound("pop.wav")
+                    #sound_manager.play_sound("pop.wav")
+                    pass
                 if self.y_is_falling:
                     # Fall
                     drop = curr_lv.gravity*curr_lv.fall_speed
-                    self.move_by(0, drop)
-                    self.y_dropped += abs(drop)
+                    if not self.been_hit:
+                        self.move_by(0, drop)
+                        self.y_dropped += abs(drop)
                     # Hit the player
                     if self.hitbox.colliderect(self.game_manager.wood_cutter.hitbox):
                         if self.fully_emergered: # fully shown
-                            self.when_hit_player()
+                            if not self.check_hit():
+                                self.when_hit_player()
                 else:
                     if self.falling:
                         if self.y_hit_ground:
                             self.when_hit_ground()
                 
+                # -- Been hit --
+                self.been_hit_fly_away()
+                
                 # --- Features ---
+                if self.been_hit:
+                    super().update(dt)
+                    return
+                
                 screen_height = GameSettings.SCREEN_HEIGHT
                 name = self.__class__.__name__
                 # Lv2: Move to left or right

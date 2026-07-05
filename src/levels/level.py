@@ -22,14 +22,18 @@ class LevelInfo(TypedDict):
     fall_speed: int
     branch_move_speed: int
     branch_emerge_speed: int
-    gravity: int
+    gravity_init: int
     # Features
     branch_move: bool
     move_sound: str
     branch_emerge: bool
     emerge_sound: str
-    highest_score: int
+    gravity_switch: bool
+    gravity_switch_sound: str
+    switch_time: float = 3          # Level 4
+    invicible_time: float = 1       # Level 4
     # Records
+    highest_score: int
     records: list[Record]
 
 class Level:
@@ -53,6 +57,7 @@ class Level:
     fall_speed: int = 7
     branch_move_speed: int = 10
     branch_emerge_speed: int = 15
+    gravity_init: int = 1
     gravity: int = 1
     
     # Features
@@ -60,6 +65,10 @@ class Level:
     move_sound: str = "Teleport2.wav"
     branch_emerge: bool = False     # Level 3
     emerge_sound: str = "Emerge.wav"
+    gravity_switch: bool = False    # Level 4
+    gravity_switch_sound: str = "echo.wav"
+    switch_time: float = 3          # Level 4
+    invicible_time: float = 1       # Level 4
     
     # Records (class defaults kept for typing, but instances will override)
     highest_score: int = 0
@@ -83,6 +92,16 @@ class Level:
     
     def toggle_gravity(self):
         self.gravity = -self.gravity
+        self.validate_gravity()
+    
+    def init_gravity(self):
+        self.gravity = self.gravity_init
+        if self.gravity_init > 0:
+            self.gravity_init = 1
+        elif self.gravity_init < 0:
+            self.gravity_init = -1
+        else:
+            self.gravity_init = 1
         self.validate_gravity()
     
     def make_block(self) -> LevelInfo:
@@ -109,13 +128,17 @@ class Level:
         block["fall_speed"] = self.fall_speed
         block["branch_move_speed"] = self.branch_move_speed
         block["branch_emerge_speed"] = self.branch_emerge_speed
-        block["gravity"] = self.gravity
+        block["gravity_init"] = self.gravity_init
 
         # Features
         block["branch_move"] = self.branch_move
-        block["move_sound"] = self.move_sound
+        if self.branch_move: block["move_sound"] = self.move_sound
         block["branch_emerge"] = self.branch_emerge
-        block["emerge_sound"] = self.emerge_sound
+        if self.branch_emerge: block["emerge_sound"] = self.emerge_sound
+        block["gravity_switch"] = self.gravity_switch
+        if self.gravity_switch: block["gravity_switch_sound"] = self.gravity_switch_sound
+        if self.gravity_switch: block["switch_time"] = self.switch_time
+        if self.gravity_switch: block["invicible_time"] = self.invicible_time
         
         return block
     
@@ -172,7 +195,8 @@ class Level:
         level.fall_speed = data.get("fall_speed") or level.fall_speed
         level.branch_move_speed = data.get("branch_move_speed") or level.branch_move_speed
         level.branch_emerge_speed = data.get("branch_emerge_speed") or level.branch_emerge_speed
-        level.gravity = data.get("gravity") or level.gravity
+        level.gravity_init = data.get("gravity_init") or level.gravity_init
+        level.init_gravity()
         level.validate_gravity()
         
         # Features
@@ -180,5 +204,9 @@ class Level:
         level.move_sound = data.get("move_sound") or level.move_sound
         level.branch_emerge = data.get("branch_emerge") or level.branch_emerge
         level.emerge_sound = data.get("emerge_sound") or level.emerge_sound
+        level.gravity_switch = data.get("gravity_switch") or level.gravity_switch
+        level.gravity_switch_sound = data.get("gravity_switch_sound") or level.gravity_switch_sound
+        level.switch_time = data.get("switch_time") or level.switch_time
+        level.invicible_time = data.get("invicible_time") or level.invicible_time
         
         return level

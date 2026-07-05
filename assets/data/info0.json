@@ -46,11 +46,10 @@
       "fall_speed": 7,
       "branch_move_speed": 10,
       "branch_emerge_speed": 15,
-      "gravity": 1,
+      "gravity_init": 1,
       "branch_move": false,
-      "move_sound": "Teleport2.wav",
       "branch_emerge": false,
-      "emerge_sound": "Emerge.wav"
+      "gravity_switch": false
     },
     {
       "level_label": "Lv2",
@@ -90,11 +89,11 @@
       "fall_speed": 7,
       "branch_move_speed": 10,
       "branch_emerge_speed": 15,
-      "gravity": 1,
+      "gravity_init": 1,
       "branch_move": true,
       "move_sound": "Teleport2.wav",
       "branch_emerge": false,
-      "emerge_sound": "Emerge.wav"
+      "gravity_switch": false
     },
     {
       "level_label": "Lv3",
@@ -134,11 +133,60 @@
       "fall_speed": 7,
       "branch_move_speed": 10,
       "branch_emerge_speed": 15,
-      "gravity": 1,
+      "gravity_init": 1,
       "branch_move": true,
       "move_sound": "Teleport2.wav",
       "branch_emerge": true,
-      "emerge_sound": "Emerge.wav"
+      "emerge_sound": "Emerge.wav",
+      "gravity_switch": false
+    },
+    {
+      "level_label": "Lv4",
+      "level_name": "Gravity Tree",
+      "bgm_path": "Dance Funky.wav",
+      "gg_bgm": "Dance Sitar.wav",
+      "background_color": [
+        0,
+        0,
+        80
+      ],
+      "title_color": [
+        150,
+        255,
+        100
+      ],
+      "button_color": [
+        150,
+        200,
+        50
+      ],
+      "player_color": [
+        220,
+        220,
+        255
+      ],
+      "score_color": [
+        255,
+        255,
+        0
+      ],
+      "text_color": [
+        0,
+        255,
+        0
+      ],
+      "fall_speed": 7,
+      "branch_move_speed": 10,
+      "branch_emerge_speed": 15,
+      "gravity_init": 1,
+      "branch_move": true,
+      "move_sound": "Teleport2.wav",
+      "branch_emerge": true,
+      "emerge_sound": "Emerge.wav",
+      "gravity_switch": true,
+      "gravity_switch_sound": "echo.wav",
+      "switch_time": 3,
+      "invicible_time": 0.5
     }
   ]
 }

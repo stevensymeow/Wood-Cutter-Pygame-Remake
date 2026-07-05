@@ -6,6 +6,7 @@ from .logger import Logger
 import json # By me
 import sys
 import os
+
 # --- ADD THIS HELPER FUNCTION ---
 def get_resource_path(relative_path: str) -> Path:
     """ Get absolute path to resource, works for dev and for PyInstaller """

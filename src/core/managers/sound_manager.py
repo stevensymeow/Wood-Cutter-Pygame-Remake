@@ -63,8 +63,10 @@ class SoundManager:
     def resume_all(self):
         pg.mixer.unpause()
         
-    def play_sound(self, filepath, volume=0.7):
+    def play_sound(self, filepath: str = "", volume: float = 0.7):
         #sound = load_sound(filepath)
+        if not filepath:
+            return
         sound = self.resource_manager.get_sound(filepath)
         sound.set_volume(volume)
         sound.play()

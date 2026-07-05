@@ -28,6 +28,9 @@ class Branch(FallingObject):
     # Game manager
     game_manager: GameManager
     
+    # Lv4
+    been_hit: bool
+    
     def __init__(self, game_manager: GameManager, can_drag: bool = False, pos: int = -1, 
                  do_move: bool = True,
                  do_emerge: bool = True):
@@ -54,6 +57,9 @@ class Branch(FallingObject):
         self.do_emerge = do_emerge
         #self.do_emerge = random.randint(1, 100) <= 50
         
+        # Lv4:
+        self.been_hit = False
+        
         super().__init__(game_manager=game_manager,  
                          width=self.width, height=self.height, 
                          color=self.color, hitbox_color=self.hitbox_color,
@@ -70,6 +76,7 @@ class Branch(FallingObject):
         self.falling = False
         self.game_manager.fallen_branches += 1
     
+    @override
     def when_hit_player(self):
         self.game_manager.end_game()
         sound_manager.play_sound("Punch.wav")
