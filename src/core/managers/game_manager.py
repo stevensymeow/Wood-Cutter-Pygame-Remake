@@ -454,6 +454,6 @@ class GameManager:
         level_data: list[dict[str, object]] = data["levels"]
         record_cnt = len(level_data)
         for i in range(self.level_count):
-            if i >= record_cnt-1: break
+            if i > record_cnt-1: break
             self.levels[i].load_record(level_data[i])
         

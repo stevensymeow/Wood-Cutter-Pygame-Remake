@@ -8,32 +8,56 @@
       "level_name": "Normal Tree",
       "bgm_path": "xylo1.wav",
       "gg_bgm": "cave.wav",
-      "highest_score": 0,
-      "records": []
+      "highest_score": 4,
+      "records": [
+        {
+          "score": 4,
+          "branches": 2,
+          "gems": 2
+        }
+      ]
     },
     {
       "level_label": "Lv2",
       "level_name": "Magic Tree",
       "bgm_path": "Dance Celebrate.wav",
       "gg_bgm": "cave.wav",
-      "highest_score": 0,
-      "records": []
+      "highest_score": 2,
+      "records": [
+        {
+          "score": 2,
+          "branches": 1,
+          "gems": 1
+        }
+      ]
     },
     {
       "level_label": "Lv3",
       "level_name": "Magic Tree II",
       "bgm_path": "Dance Slow Mo.wav",
       "gg_bgm": "Dance Sitar.wav",
-      "highest_score": 0,
-      "records": []
+      "highest_score": 1,
+      "records": [
+        {
+          "score": 1,
+          "branches": 1,
+          "gems": 0
+        }
+      ]
     },
     {
       "level_label": "Lv4",
       "level_name": "Gravity Tree",
       "bgm_path": "Dance Funky.wav",
       "gg_bgm": "Dance Sitar.wav",
-      "highest_score": 1,
-      "records": []
+      "highest_score": 18,
+      "records": [
+        {
+          "score": 18,
+          "branches": 10,
+          "gems": 8
+        }
+      ]
     }
   ]
 }
