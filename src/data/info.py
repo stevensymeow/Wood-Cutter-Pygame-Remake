@@ -1,7 +1,9 @@
 import pygame as pg
 import json, os
+
 from src.utils import GameSettings, Logger, load_data, ASSETS_DIR, SAVES_DIR
-from src.levels import Level
+from src.levels import Level, LevelInfo
+from src.interface.dialogs import tk_level_select
 
 class Info:
     # json path
@@ -21,6 +23,7 @@ class Info:
     
     # Levels
     levels: list[Level]
+    level_datas: list[LevelInfo]
     level_count: int
 
     def __init__(self):
@@ -48,6 +51,20 @@ class Info:
             GameSettings.level_index -= 1
             Logger.info(f"Moved to previous level: {GameSettings.level_index}")
             GameSettings.LEVEL_SWITCHED = True
+            return True
+        return False
+
+    def select_levels(self) -> bool:
+        """Select level API"""
+        level_index = tk_level_select(self.level_datas, GameSettings.level_index)
+        if level_index != GameSettings.level_index:
+            return self.set_level(level_index)
+        return False
+    
+    def set_level(self, level_index: int) -> bool:
+        if 0 <= level_index <= self.level_count - 1 and GameSettings != level_index:
+            GameSettings.level_index = level_index
+            Logger.info(f"Moved to level: {level_index}")
             return True
         return False
     # -- Levels --
@@ -100,7 +117,8 @@ class Info:
         self.wood_cutter_width = data.get("wood_cutter_width") or self.wood_cutter_width
         
         # Levels
-        level_datas: list[dict[str, object]] = data.get("levels") or []
+        level_datas: list[LevelInfo] = data.get("levels") or []
+        self.level_datas = level_datas
         for level_data in level_datas:
             self.levels.append(Level.from_dict(level_data))
         self.level_count = len(self.levels)

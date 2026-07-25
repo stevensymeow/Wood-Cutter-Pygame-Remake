@@ -158,7 +158,7 @@ class FallingObject(WHShape):
             return True
         if self.game_manager.wood_cutter.invincible and self.fully_emergered or input_manager.key_down(pg.K_t) or input_manager.mouse_down(3):
             if not self.been_hit:
-                Logger.info("Player used his invincibility!!!!!!")
+                #Logger.info("Player used his invincibility!!!!!!")
                 sound_manager.play_sound("Punch1.wav")
                 self.been_hit = True
             return True

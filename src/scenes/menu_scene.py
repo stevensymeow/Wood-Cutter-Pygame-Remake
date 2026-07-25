@@ -65,6 +65,9 @@ class MenuScene(Scene):
         self.plevel_button = OvalButton(button_color, pcx, pcy+100+10+60+10+60, 180, 60,
                                        on_click=lambda: self.switch_level(-1),
                                        text_str="Previous Level", text_size=20, text_color=(255, 255, 255))
+        self.level_button = OvalButton(button_color, pcx, pcy+100+10+60+10+60+10+60, 100, 40,
+                                       on_click=self.set_level,
+                                       text_str="Levels", text_size=15, text_color=(255, 255, 255))
 
     @override
     def enter(self) -> None:
@@ -99,26 +102,35 @@ class MenuScene(Scene):
         else:
             switched = GameInfo.to_prev_level()
         if switched:
-            curr_lv = self.game_manager.curr_lv
-            Logger.info(f"Current level: {curr_lv.level_label} {curr_lv.level_name}")
-            # BGM
-            sound_manager.play_bgm(curr_lv.bgm_path)
-            # Background
-            self.background.set_color(curr_lv.background_color)
-            # Title text
-            self.main_title.set_color(curr_lv.title_color)
-            # Running text
-            self.running_text.set_color(curr_lv.text_color)
-            # Buttons
-            button_color = curr_lv.button_color
-            self.start_button.set_color(button_color)
-            self.nlevel_button.set_color(button_color)
-            self.plevel_button.set_color(button_color)
-            # Tree
-            self.rectangle_1.set_angle()
-            self.oval_1.set_angle()
-            self.rectangle_2.set_angle()
-            self.oval_2.set_angle()
+            self.when_level_switched()
+    
+    def set_level(self):
+        switched = GameInfo.select_levels()
+        if switched:
+            self.when_level_switched()
+    
+    def when_level_switched(self):
+        curr_lv = self.game_manager.curr_lv
+        Logger.info(f"Current level: {curr_lv.level_label} {curr_lv.level_name}")
+        # BGM
+        sound_manager.play_bgm(curr_lv.bgm_path)
+        # Background
+        self.background.set_color(curr_lv.background_color)
+        # Title text
+        self.main_title.set_color(curr_lv.title_color)
+        # Running text
+        self.running_text.set_color(curr_lv.text_color)
+        # Buttons
+        button_color = curr_lv.button_color
+        self.start_button.set_color(button_color)
+        self.nlevel_button.set_color(button_color)
+        self.plevel_button.set_color(button_color)
+        self.level_button.set_color(button_color)
+        # Tree
+        self.rectangle_1.set_angle()
+        self.oval_1.set_angle()
+        self.rectangle_2.set_angle()
+        self.oval_2.set_angle()
     
     @override
     def update(self, dt: float):
@@ -171,6 +183,7 @@ class MenuScene(Scene):
         
         # -- Button --
         self.start_button.update(dt)
+        self.level_button.update(dt)
         # Level
         self.nlevel_button.can_hover = self.game_manager.has_next_level
         self.plevel_button.can_hover = self.game_manager.has_prev_level
@@ -195,6 +208,7 @@ class MenuScene(Scene):
         self.start_button.draw(screen)
         self.nlevel_button.draw(screen)
         self.plevel_button.draw(screen)
+        self.level_button.draw(screen)
         
         # Running Text
         self.running_text.draw(screen)

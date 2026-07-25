@@ -384,17 +384,21 @@ class GameManager:
         
         if self.state == Game.Playing:
             space = GameInfo.branch_space
+            if self.branches:
+                last_branch = self.branches[-1]
+                last_branch_y_dist = last_branch.y_dist_from_init
+            else:
+                last_branch_y_dist = GameSettings.SCREEN_HEIGHT
             if self.gems:
                 last_gem = self.gems[-1]
-                last_branch = self.branches[-1]
-                if last_gem.y_dist_from_init >= space/2 and last_branch.y_dist_from_init >= space/2 and \
-                  last_gem.y_dist_from_init > last_branch.y_dist_from_init:
+                if last_gem.y_dist_from_init >= space/2 and last_branch_y_dist >= space/2 and \
+                  last_gem.y_dist_from_init > last_branch_y_dist:
                     self.add_new_gem()
                     #Logger.info(f"Gems: {' '.join([str(gem.y_dropped) for gem in self.gems])}")
                 if not self.gems[0].falling:
                     self.del_first_gem()
             else:
-                if self.branches and self.branches[-1].y_dist_from_init >= space/2:
+                if self.branches and last_branch_y_dist >= space/2:
                     self.add_new_gem()
             
         for gem in self.gems:

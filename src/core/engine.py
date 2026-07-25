@@ -126,7 +126,8 @@ class Engine:
         if GameSettings.AUTO_SAVE:
             if scene_manager.is_game_scene:
                 scene_manager.game_manager.set_record()
-            scene_manager.game_manager.save()
+            else:
+                scene_manager.game_manager.save()
             Logger.info("Auto save on, file loaded, auto saved")
         else:
             Logger.info("Auto save off, changes not saved")
