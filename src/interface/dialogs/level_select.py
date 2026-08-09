@@ -2,9 +2,15 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
+import os
+from pathlib import Path
+
+from src.utils.loader import get_persistent_path, ASSETS_DIR
 from src.levels import Level, LevelInfo
 
-def tk_level_select(level_datas: list[LevelInfo], index: int, parent_object: tk.Tk | tk.Toplevel | None = None) -> int:
+BASE_PATH = get_persistent_path("")
+
+def tk_level_select(level_datas: list[LevelInfo], index: int, parent_object: tk.Tk | tk.Toplevel | None = None, icon_path: str | Path = "") -> int:
     # Deal with parent
     for name, root in globals().items():
         if isinstance(root, tk.Tk):
@@ -19,9 +25,24 @@ def tk_level_select(level_datas: list[LevelInfo], index: int, parent_object: tk.
     else:
         parent = tk.Tk()
         parent.withdraw()
-        
+    
+    # Icon
+    do_set_icon = False
+    
+    if icon_path:
+        icon_path = Path(icon_path)
+        if not icon_path.is_absolute():
+            icon_path = BASE_PATH / icon_path
+        if os.path.exists(icon_path):
+            parent.iconbitmap(icon_path)
+            do_set_icon = True
+     
     # Dialog
     dialog = tk.Toplevel(parent)
+    
+    if (not parent_object) and do_set_icon:
+        dialog.iconbitmap(icon_path)
+    
     dialog.title("Level select window")
     dialog.resizable(False, False)
     d_width = 300
@@ -155,6 +176,8 @@ if __name__ == "__main__":
         print(f"Usage: {sys.argv[0]} <index(0~{level_cnt-1})>", file=sys.stderr)
         sys.exit(1)
     
-    index_selected = tk_level_select(levels, level_index)
+    icon_path = ASSETS_DIR / "images/window_icon/mochicat.ico"
+    print(icon_path.is_absolute())
+    index_selected = tk_level_select(levels, level_index, icon_path=icon_path)
     print(f"Index selected: {index_selected}")
     

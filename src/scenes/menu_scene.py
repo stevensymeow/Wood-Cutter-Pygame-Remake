@@ -108,6 +108,7 @@ class MenuScene(Scene):
         switched = GameInfo.select_levels()
         if switched:
             self.when_level_switched()
+        self.tree_set_angle()
     
     def when_level_switched(self):
         curr_lv = self.game_manager.curr_lv
@@ -127,6 +128,9 @@ class MenuScene(Scene):
         self.plevel_button.set_color(button_color)
         self.level_button.set_color(button_color)
         # Tree
+        self.tree_set_angle()
+    
+    def tree_set_angle(self):
         self.rectangle_1.set_angle()
         self.oval_1.set_angle()
         self.rectangle_2.set_angle()
@@ -149,6 +153,8 @@ class MenuScene(Scene):
         
         # Trees
         pcx, pcy = GameSettings.SCREEN_WIDTH / 2, GameSettings.SCREEN_HEIGHT / 2
+        if input_manager.key_pressed(pg.K_r):
+            self.tree_set_angle()
         
         movement = 1
         if self.out:
@@ -189,6 +195,10 @@ class MenuScene(Scene):
         self.plevel_button.can_hover = self.game_manager.has_prev_level
         self.nlevel_button.update(dt)
         self.plevel_button.update(dt)
+        if input_manager.key_pressed(pg.K_n):
+            self.switch_level(1)
+        if input_manager.key_pressed(pg.K_m):
+            self.switch_level(-1)
         
     @override
     def draw(self, screen: pg.Surface):

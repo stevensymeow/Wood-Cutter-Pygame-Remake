@@ -56,7 +56,8 @@ class Info:
 
     def select_levels(self) -> bool:
         """Select level API"""
-        level_index = tk_level_select(self.level_datas, GameSettings.level_index)
+        icon_path = ASSETS_DIR / "images/window_icon/mochicat.ico"
+        level_index = tk_level_select(self.level_datas, GameSettings.level_index, icon_path=icon_path)
         if level_index != GameSettings.level_index:
             return self.set_level(level_index)
         return False
